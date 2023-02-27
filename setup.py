@@ -25,7 +25,7 @@ setup(
         ]
     },
     include_package_data=True,
-    install_requires=["alitra", "isar"],
+    install_requires=["alitra", "isar", "gql"],
     setup_requires=[
         "wheel",
     ],
