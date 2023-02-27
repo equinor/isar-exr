@@ -1,18 +1,15 @@
 import json
-import os
-
 import requests
-from dotenv import load_dotenv
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 from requests.auth import HTTPBasicAuth
+from isar_exr.config.settings import settings
 
-load_dotenv()
-username = os.getenv("API_USERNAME")
-password = os.getenv("API_PASSWORD")
-url = "https://login.energy-robotics.com/api/loginApi"
+username = settings.ROBOT_API_USERNAME
+password = settings.ROBOT_API_PASSWORD
+auth_url = settings.ROBOT_AUTH_URL
 r = requests.post(
-    url,
+    auth_url,
     auth=HTTPBasicAuth(username=username, password=password),
 )
 jsonrespons = json.loads(r.content.decode("utf-8"))
@@ -20,9 +17,7 @@ token = jsonrespons["access_token"]
 reqHeaders = {
     "authorization": "Bearer " + token,
 }
-transport = AIOHTTPTransport(
-    url="https://developer.energy-robotics.com/graphql", headers=reqHeaders
-)
+transport = AIOHTTPTransport(url=settings.ROBOT_API_URL, headers=reqHeaders)
 
 # Create a GraphQL client using the defined transport
 client = Client(transport=transport, fetch_schema_from_transport=True)
