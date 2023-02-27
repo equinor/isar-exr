@@ -25,7 +25,7 @@ setup(
         ]
     },
     include_package_data=True,
-    install_requires=["alitra", "isar", "gql"],
+    install_requires=["alitra", "isar", "gql[aiohttp]", "python-dotenv"],
     setup_requires=[
         "wheel",
     ],
