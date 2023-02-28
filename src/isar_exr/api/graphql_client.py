@@ -1,14 +1,16 @@
-import logging
+from logging import Logger, getLogger
 from typing import Any, Dict
+
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.exceptions import (
     TransportClosed,
+    TransportProtocolError,
     TransportQueryError,
     TransportServerError,
-    TransportProtocolError,
 )
 from graphql import GraphQLError
+
 from isar_exr.api.authentication import get_access_token
 from isar_exr.config.settings import settings
 
@@ -17,8 +19,8 @@ class GraphqlClient:
     def __init__(self):
         # Parameter used for retrying query with new authentication
         # in case of expired token
-        self._reauthenticated = False
-        self.logger = logging.getLogger("graphql_client")
+        self._reauthenticated: bool = False
+        self.logger: Logger = getLogger("graphql_client")
         self._initialize_client()
 
     def _initialize_client(self):
@@ -79,4 +81,4 @@ class GraphqlClient:
             raise
         finally:
             self._reauthenticated = False
-        return None
+        return {}

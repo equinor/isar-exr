@@ -1,4 +1,5 @@
 import importlib.resources as pkg_resources
+
 from dotenv import load_dotenv
 from pydantic import BaseSettings, Field
 

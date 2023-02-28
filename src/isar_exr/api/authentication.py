@@ -1,8 +1,10 @@
 import json
 from typing import Any
+
 import requests
-from requests.auth import HTTPBasicAuth
 from requests import Response
+from requests.auth import HTTPBasicAuth
+
 from isar_exr.config.settings import settings
 
 

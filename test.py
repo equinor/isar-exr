@@ -1,7 +1,9 @@
 from time import sleep
-from graphql import GraphQLError
-from isar_exr.api.graphql_client import GraphqlClient
+
 from gql.transport.exceptions import TransportError
+from graphql import GraphQLError
+
+from isar_exr.api.graphql_client import GraphqlClient
 
 graph_client: GraphqlClient = GraphqlClient()
 
