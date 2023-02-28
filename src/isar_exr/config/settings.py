@@ -5,6 +5,9 @@ from pydantic import BaseSettings, Field
 
 
 class Settings(BaseSettings):
+    # The ID of the robot in the EXR database
+    ROBOT_EXR_ID: str = Field(default="606db4aec70b7c3a944b89d9")
+
     # URL for Ex-Robotics API
     ROBOT_API_URL: str = Field(default="https://developer.energy-robotics.com/graphql/")
 
