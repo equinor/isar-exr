@@ -9,7 +9,7 @@ from gql.transport.exceptions import (
     TransportQueryError,
     TransportServerError,
 )
-from graphql import GraphQLError
+from graphql import DocumentNode, GraphQLError
 
 from isar_exr.api.authentication import get_access_token
 from isar_exr.config.settings import settings
@@ -35,7 +35,7 @@ class GraphqlClient:
         transport = AIOHTTPTransport(url=settings.ROBOT_API_URL, headers=auth_header)
         self.client = Client(transport=transport, fetch_schema_from_transport=True)
 
-    def query(self, json_body: str) -> Dict[str, Any]:
+    def query(self, gql_query: DocumentNode, query_parameters: dict[str, Any]) -> Dict[str, Any]:
         """
         Sends a GraphQL query to the 'ROBOT_API_URL' endpoint.
 
@@ -45,9 +45,8 @@ class GraphqlClient:
         :raises TransportError: Something went wrong during transfer or on the API server side
         :raises Exception: Unknown error
         """
-        query = gql(json_body)
         try:
-            response: Dict[str, Any] = self.client.execute(query)
+            response: Dict[str, Any] = self.client.execute(gql_query, query_parameters)
             return response
         except GraphQLError as e:
             self.logger.error(
@@ -64,7 +63,7 @@ class GraphqlClient:
                 # The token might have expired, try again with a new token
                 self._initialize_client()
                 self._reauthenticated = True
-                self.query(json_body=json_body)
+                self.query(gql_query=gql_query, query_parameters=query_parameters)
         except TransportQueryError as e:
             self.logger.error(
                 f"The Energy Robotics server returned an error: {e.errors}"
