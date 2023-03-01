@@ -58,9 +58,9 @@ class Robot(RobotInterface):
             os.path.dirname(os.path.realpath(__file__)), "example_images"
         )
 
-    def initiate_step(self, step: Step) -> bool:
+    def initiate_step(self, step: Step) -> None:
         time.sleep(STEP_DURATION_IN_SECONDS)
-        return True
+        return None
 
     def step_status(self) -> StepStatus:
         return StepStatus.Successful
