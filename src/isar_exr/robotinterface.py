@@ -42,9 +42,9 @@ from robot_interface.utilities.json_service import EnhancedJSONEncoder
 STEP_DURATION_IN_SECONDS = 5
 
 
-class Robot(RobotInterface):
+class ExrRobot(RobotInterface):
     def __init__(self):
-        self.logger: Logger = logging.getLogger("robot")
+        self.logger: Logger = logging.getLogger(ExrRobot.__name__)
 
         self.position: Position = Position(x=1, y=1, z=1, frame=Frame("asset"))
         self.orientation: Orientation = Orientation(
