@@ -1,4 +1,5 @@
 from enum import Enum
+
 from robot_interface.models.mission import StepStatus
 
 

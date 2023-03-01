@@ -12,6 +12,7 @@ from threading import Thread
 from typing import List, Sequence, Union
 
 from alitra import Frame, Orientation, Pose, Position
+from robot_interface.models.exceptions import RobotException
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import (
     Image,
@@ -39,12 +40,17 @@ from robot_interface.telemetry.payloads import (
 )
 from robot_interface.utilities.json_service import EnhancedJSONEncoder
 
+from isar_exr.config.settings import settings
+from src.isar_exr.api.energy_robotics_api import Api
+
 STEP_DURATION_IN_SECONDS = 5
 
 
 class ExrRobot(RobotInterface):
     def __init__(self):
         self.logger: Logger = logging.getLogger(ExrRobot.__name__)
+        self.api: Api = Api()
+        self.exr_robot_id: str = settings.ROBOT_EXR_ID
 
         self.position: Position = Position(x=1, y=1, z=1, frame=Frame("asset"))
         self.orientation: Orientation = Orientation(
@@ -65,8 +71,13 @@ class ExrRobot(RobotInterface):
     def step_status(self) -> StepStatus:
         return StepStatus.Successful
 
-    def stop(self) -> bool:
-        return True
+    def stop(self) -> None:
+        try:
+            self.api.pause_current_mission(self.exr_robot_id)
+        except RobotException:
+            raise
+        except Exception as e:
+            raise RobotException from e
 
     def get_inspections(self, step: InspectionStep) -> Sequence[Inspection]:
         raise NotImplementedError
