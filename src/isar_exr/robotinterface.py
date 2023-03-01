@@ -58,9 +58,9 @@ class ExrRobot(RobotInterface):
             os.path.dirname(os.path.realpath(__file__)), "example_images"
         )
 
-    def initiate_step(self, step: Step) -> bool:
+    def initiate_step(self, step: Step) -> None:
         time.sleep(STEP_DURATION_IN_SECONDS)
-        return True
+        return None
 
     def step_status(self) -> StepStatus:
         return StepStatus.Successful
@@ -69,12 +69,7 @@ class ExrRobot(RobotInterface):
         return True
 
     def get_inspections(self, step: InspectionStep) -> Sequence[Inspection]:
-        if type(step) in [TakeImage, TakeThermalImage]:
-            return self._create_image(step)
-        elif type(step) in [TakeVideo, TakeThermalVideo]:
-            return self._create_video(step)
-        else:
-            return None
+        raise NotImplementedError
 
     def initialize(self, params: InitializeParams) -> None:
         return
