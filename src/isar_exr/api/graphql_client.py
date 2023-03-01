@@ -35,7 +35,9 @@ class GraphqlClient:
         transport = AIOHTTPTransport(url=settings.ROBOT_API_URL, headers=auth_header)
         self.client = Client(transport=transport, fetch_schema_from_transport=True)
 
-    def query(self, gql_query: DocumentNode, query_parameters: dict[str, Any]) -> Dict[str, Any]:
+    def query(
+        self, query_string: str, query_parameters: dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Sends a GraphQL query to the 'ROBOT_API_URL' endpoint.
 
@@ -46,7 +48,8 @@ class GraphqlClient:
         :raises Exception: Unknown error
         """
         try:
-            response: Dict[str, Any] = self.client.execute(gql_query, query_parameters)
+            document: DocumentNode = gql(query_string)
+            response: Dict[str, Any] = self.client.execute(document, query_parameters)
             return response
         except GraphQLError as e:
             self.logger.error(
@@ -63,7 +66,7 @@ class GraphqlClient:
                 # The token might have expired, try again with a new token
                 self._initialize_client()
                 self._reauthenticated = True
-                self.query(gql_query=gql_query, query_parameters=query_parameters)
+                self.query(query_string=query_string, query_parameters=query_parameters)
         except TransportQueryError as e:
             self.logger.error(
                 f"The Energy Robotics server returned an error: {e.errors}"
