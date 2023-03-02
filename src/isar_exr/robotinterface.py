@@ -40,7 +40,7 @@ from robot_interface.telemetry.payloads import (
 )
 from robot_interface.utilities.json_service import EnhancedJSONEncoder
 
-from isar_exr.api.energy_robotics_api import Api
+from isar_exr.api.energy_robotics_api import EnergyRoboticsApi
 from isar_exr.config.settings import settings
 
 STEP_DURATION_IN_SECONDS = 5
@@ -49,7 +49,7 @@ STEP_DURATION_IN_SECONDS = 5
 class ExrRobot(RobotInterface):
     def __init__(self):
         self.logger: Logger = logging.getLogger(ExrRobot.__name__)
-        self.api: Api = Api()
+        self.api: EnergyRoboticsApi = EnergyRoboticsApi()
         self.exr_robot_id: str = settings.ROBOT_EXR_ID
 
         self.position: Position = Position(x=1, y=1, z=1, frame=Frame("asset"))

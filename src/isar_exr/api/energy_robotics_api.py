@@ -8,7 +8,7 @@ from isar_exr.models.exceptions import NoMissionRunningException
 from isar_exr.models.step_status import ExrMissionStatus
 
 
-class Api:
+class EnergyRoboticsApi:
     def __init__(self):
         self.client = GraphqlClient()
 
