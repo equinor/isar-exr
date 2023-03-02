@@ -13,6 +13,7 @@ from typing import List, Sequence, Union
 
 from alitra import Frame, Orientation, Pose, Position
 from robot_interface.models.exceptions import RobotException
+from isar_exr.models.exceptions import NoMissionRunningException
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import (
     Image,
@@ -32,6 +33,7 @@ from robot_interface.models.mission import (
     TakeVideo,
 )
 from robot_interface.models.mission.status import RobotStatus
+from robot_interface.models.exceptions import RobotException
 from robot_interface.robot_interface import RobotInterface
 from robot_interface.telemetry.mqtt_client import MqttTelemetryPublisher
 from robot_interface.telemetry.payloads import (
@@ -39,6 +41,7 @@ from robot_interface.telemetry.payloads import (
     TelemetryPosePayload,
 )
 from robot_interface.utilities.json_service import EnhancedJSONEncoder
+from isar_exr.config.settings import settings
 
 from isar_exr.api.energy_robotics_api import EnergyRoboticsApi
 from isar_exr.config.settings import settings
@@ -69,7 +72,13 @@ class ExrRobot(RobotInterface):
         return None
 
     def step_status(self) -> StepStatus:
-        return StepStatus.Successful
+        try:
+            return self.api.get_step_status(settings.ROBOT_EXR_ID)
+        except NoMissionRunningException:
+            # This is a temporary solution until we have step status by mission id
+            return StepStatus.Successful
+        except Exception as e:
+            raise RobotException from e
 
     def stop(self) -> None:
         try:
