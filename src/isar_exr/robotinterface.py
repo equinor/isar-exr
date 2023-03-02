@@ -40,8 +40,8 @@ from robot_interface.telemetry.payloads import (
 )
 from robot_interface.utilities.json_service import EnhancedJSONEncoder
 
+from isar_exr.api.energy_robotics_api import Api
 from isar_exr.config.settings import settings
-from src.isar_exr.api.energy_robotics_api import Api
 
 STEP_DURATION_IN_SECONDS = 5
 
