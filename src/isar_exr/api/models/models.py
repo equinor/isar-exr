@@ -27,10 +27,10 @@ class Pose3DStampedInput(BaseModel):
     orientation: QuaternionInput
 
 
-class PointOfInterestTypeEnum(BaseModel, Enum):
-    MANOMETER: str
-    FIRE_EXTINGUISHER: str
-    GENERIC: str
+class PointOfInterestTypeEnum(str, Enum):
+    MANOMETER: str = "MANOMETER"
+    FIRE_EXTINGUISHER: str = "FIRE_EXTINGUISHER"
+    GENERIC: str = "GENERIC"
 
 
 class PointOfInterestActionPhotoInput(BaseModel):
