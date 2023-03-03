@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Any, Dict
 from isar_exr.api.models.models import Point3DInput, Pose3DStampedInput, QuaternionInput
 
@@ -7,6 +8,7 @@ from robot_interface.models.mission.status import StepStatus
 from isar_exr.api.graphql_client import GraphqlClient
 from isar_exr.models.exceptions import NoMissionRunningException
 from isar_exr.models.step_status import ExrMissionStatus
+from isar_exr.api.models.enums import AwakeStatus
 
 
 class EnergyRoboticsApi:
@@ -191,9 +193,6 @@ class EnergyRoboticsApi:
                 executeAwakeCommand(targetState: AWAKE, robotID:$robot_id)
                 {
                     id
-                    startTimestamp
-                    result
-                    state
                 }
             }
         """
@@ -202,4 +201,26 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(query_string, params)
         except Exception as e:
             raise RobotException(e)
-        
+
+        while not self.get_robot_awake_status(exr_robot_id):
+            sleep(1)
+
+    def get_robot_awake_status(self, exr_robot_id: str) -> bool:
+        query_string: str = """
+            query checkIfAwake($robot_id: String!)
+            {
+                currentRobotStatus(robotID:$robot_id)
+                {
+                    awakeStatus
+                }
+            }
+        """
+        params: dict = {"robot_id": exr_robot_id}
+        try:
+            result: Dict[str, Any] = self.client.query(query_string, params)
+        except Exception as e:
+            raise RobotException(e)
+
+        status: AwakeStatus = AwakeStatus(result["awakeStatus"])
+        success: bool = status in [AwakeStatus.Awake]
+        return success
