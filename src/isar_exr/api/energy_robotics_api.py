@@ -1,3 +1,4 @@
+from datetime import datetime
 from time import sleep
 from typing import Any, Dict
 from isar_exr.api.models.models import Point3DInput, Pose3DStampedInput, QuaternionInput
@@ -9,6 +10,8 @@ from isar_exr.api.graphql_client import GraphqlClient
 from isar_exr.models.exceptions import NoMissionRunningException
 from isar_exr.models.step_status import ExrMissionStatus
 from isar_exr.api.models.enums import AwakeStatus
+
+from isar_exr.config.settings import settings
 
 
 class EnergyRoboticsApi:
@@ -185,8 +188,10 @@ class EnergyRoboticsApi:
             raise RobotException(e)
 
         return response_dict["createWaypointTaskDefinition"]["id"]
-    
-    def wake_up_robot(self, exr_robot_id: str) -> None:
+
+    def wake_up_robot(
+        self, exr_robot_id: str, timeout: int = settings.MAX_TIME_FOR_WAKEUP
+    ) -> None:
         query_string: str = """
             mutation wakeUp($robot_id: String!)
             {
@@ -202,10 +207,18 @@ class EnergyRoboticsApi:
         except Exception as e:
             raise RobotException(e)
 
-        while not self.get_robot_awake_status(exr_robot_id):
+        startTime = datetime.today()
+        while not self.is_robot_awake(exr_robot_id):
+            time_passed_since_function_call = (
+                datetime.today() - startTime
+            ).total_seconds()
+            if time_passed_since_function_call > timeout:
+                raise RobotException(
+                    f"Not able to wake up robot after '{timeout}' seconds."
+                )
             sleep(1)
 
-    def get_robot_awake_status(self, exr_robot_id: str) -> bool:
+    def is_robot_awake(self, exr_robot_id: str) -> bool:
         query_string: str = """
             query checkIfAwake($robot_id: String!)
             {

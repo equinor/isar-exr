@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     # URL for Ex-Robotics API
     ROBOT_API_URL: str = Field(default="https://developer.energy-robotics.com/graphql/")
 
+    # Maximum amount of seconds to wait for the robot to wake up after sent wakeup call
+    MAX_TIME_FOR_WAKEUP: int = 120
+
     # Authentication
     ROBOT_API_USERNAME: str = Field(default="example_user@email.com")
     ROBOT_API_PASSWORD: str = Field(default="example_password")
