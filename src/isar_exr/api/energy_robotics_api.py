@@ -5,6 +5,7 @@ from typing import Any
 from isar_exr.models.exceptions import NoMissionRunningException
 from isar_exr.config.settings import settings
 
+
 class Api:
     def __init__(self):
         self.client = GraphqlClient()
@@ -39,8 +40,10 @@ class Api:
         response_dict: dict[str, Any] = self.client.query(query_string, params)
         is_running: bool = response_dict["isMissionRunning"]
         return is_running
-    
-    def get_mission_report_ids_and_endtime_for_robot(self, exr_robot_id: str, number_of_latest_reports: str) -> str:
+
+    def get_mission_report_ids_and_endtime_for_robot(
+        self, exr_robot_id: str, number_of_latest_reports: str
+    ) -> str:
         query_string: str = """
             query missionReports($robot_id: String!, $number_of_latest_reports: Float!) {
                 missionReports(input: {robotId: $robot_id}
@@ -57,22 +60,40 @@ class Api:
             }
 
         """
-        params: dict = {"robot_id": exr_robot_id, "number_of_latest_reports": number_of_latest_reports}
+        params: dict = {
+            "robot_id": exr_robot_id,
+            "number_of_latest_reports": number_of_latest_reports,
+        }
         response_dict: dict = self.client.query(query_string, params)
         return response_dict["missionReports"]["page"]["edges"]
-    
-    
+
     def _return_latest_mission_report_id(self, response: dict[str, Any]):
-        return response["missionReports"]["page"]["edges"][0]["node"]["id"]
-    
+        print(response)
+        return response[0]["node"]["id"]
+
     def get_last_mission_report_for_robot(self, exr_robot_id: str):
-        reports = self.get_mission_report_ids_and_endtime_for_robot(settings.ROBOT_EXR_ID, 1)
+        reports = self.get_mission_report_ids_and_endtime_for_robot(
+            settings.ROBOT_EXR_ID, 1
+        )
         latest_report_id = self._return_latest_mission_report_id(reports)
 
-        
-        return latest_report_id
-            
+        query_string: str = """
+            query missionReport($report_id: String!) {
+                missionReport(id: $report_id) {
+                  dataPayloads{
+                    dataType
+                    uri
+                  }
+                }
+            }
 
-if __name__ == '__main__':
+        """
+
+        params = {"report_id": latest_report_id}
+        response_dict: dict = self.client.query(query_string, params)
+        return response_dict
+
+
+if __name__ == "__main__":
     api = Api()
-    print(api.get_mission_report_ids_and_endtime_for_robot(settings.ROBOT_EXR_ID, 1))
+    print(api.get_last_mission_report_for_robot(settings.ROBOT_EXR_ID))
