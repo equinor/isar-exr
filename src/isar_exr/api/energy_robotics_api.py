@@ -81,8 +81,21 @@ class Api:
             query missionReport($report_id: String!) {
                 missionReport(id: $report_id) {
                   dataPayloads{
-                    dataType
-                    uri
+                    ... on PhotoDataPayloadType {
+                      dataType
+                      uri
+                      poiName
+                    }
+                    ... on VideoDataPayloadType {
+                      dataType
+                      uri
+                      poiName
+                    }
+                    ... on AudioDataPayloadType {
+                      dataType
+                      uri
+                      poiName
+                    }
                   }
                 }
             }
@@ -92,8 +105,10 @@ class Api:
         params = {"report_id": latest_report_id}
         response_dict: dict = self.client.query(query_string, params)
         return response_dict
+    
 
 
 if __name__ == "__main__":
     api = Api()
     print(api.get_last_mission_report_for_robot(settings.ROBOT_EXR_ID))
+    print(api.get_mission_report_ids_and_endtime_for_robot(settings.ROBOT_EXR_ID, 10))
