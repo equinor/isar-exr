@@ -1,0 +1,26 @@
+{
+    "missionReports": {
+      "page": {
+        "edges": [
+          {
+            "node": {
+              "endTimestamp": 1712503226920,
+              "id": "606dd56c023c8866b43f7f7e"
+            }
+          },
+          {
+            "node": {
+              "endTimestamp": 1688748047627,
+              "id": "606ef3d8472ff0610e3bce38"
+            }
+          },
+          {
+            "node": {
+              "endTimestamp": 1620565032722,
+              "id": "606ea4984f01b71ea6a28461"
+            }
+          }
+        ]
+      }
+    }
+  }
