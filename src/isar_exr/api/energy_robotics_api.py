@@ -47,12 +47,12 @@ class EnergyRoboticsApi:
     def pause_current_mission(self, exr_robot_id: str) -> None:
         query_string: str = """
             mutation pauseMission($robot_id: String!)
+            {
+                pauseMissionExecution(robotID:$robot_id)
                 {
-                    pauseMissionExecution(robotID:$robot_id)
-                    {
-                        id, status, failures
-                    }
+                    id, status, failures
                 }
+            }
         """
         params: dict = {"robot_id": exr_robot_id}
         try:
@@ -183,3 +183,23 @@ class EnergyRoboticsApi:
             raise RobotException(e)
 
         return response_dict["createWaypointTaskDefinition"]["id"]
+    
+    def wake_up_robot(self, exr_robot_id: str) -> None:
+        query_string: str = """
+            mutation wakeUp($robot_id: String!)
+            {
+                executeAwakeCommand(targetState: AWAKE, robotID:$robot_id)
+                {
+                    id
+                    startTimestamp
+                    result
+                    state
+                }
+            }
+        """
+        params: dict = {"robot_id": exr_robot_id}
+        try:
+            result: Dict[str, Any] = self.client.query(query_string, params)
+        except Exception as e:
+            raise RobotException(e)
+        

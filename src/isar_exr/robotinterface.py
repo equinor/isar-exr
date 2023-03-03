@@ -64,7 +64,12 @@ class ExrRobot(RobotInterface):
         raise NotImplementedError
 
     def initialize(self, params: InitializeParams) -> None:
-        raise NotImplementedError
+        try:
+            self.api.wake_up_robot(self.exr_robot_id)
+        except RobotException:
+            raise
+        except Exception as e:
+            raise RobotException from e
 
     def get_telemetry_publishers(self, queue: Queue, robot_id: str) -> List[Thread]:
         publisher_threads: List[Thread] = []
