@@ -68,7 +68,6 @@ class Api:
         return response_dict["missionReports"]["page"]["edges"]
 
     def _return_latest_mission_report_id(self, response: dict[str, Any]):
-        print(response)
         return response[0]["node"]["id"]
 
     def get_last_mission_report_for_robot(self):
@@ -107,14 +106,18 @@ class Api:
         return response_dict
     
     @staticmethod
-    def _get_inspection_for_poi(mission_report: dict, point_of_interest: str) -> str:
+    def _get_inspection_uri_for_poi(mission_report: dict, point_of_interest: str) -> str:
         return next((inspection for inspection in mission_report["missionReport"]["dataPayloads"] if inspection["poiName"] == point_of_interest), None)["uri"]
-
-
+    
+    def get_inspection_data_for_poi(self, poi_name: str):
+        inspection_report = self.get_last_mission_report_for_robot()
+        inspection_data_uri = self._get_inspection_uri_for_poi(inspection_report, poi_name)
+        raise NotImplementedError 
+        
 
 if __name__ == "__main__":
     api = Api()
     report = api.get_last_mission_report_for_robot()
     #print(report)
     #print(api.get_mission_report_ids_and_endtime_for_robot(settings.ROBOT_EXR_ID, 10))
-    print(api.get_inspection_for_poi(report, "hvac_1"))
+    print(api._get_inspection_for_poi(report, "hvac_1"))

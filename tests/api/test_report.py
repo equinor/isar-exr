@@ -14,5 +14,5 @@ def test_return_inspection_uri_for_poi():
     response_dict = json.load(file)
     poi_name = "beds_1"
     expected_uri = "https://actual.png"
-    actual_uri = Api()._get_inspection_for_poi(response_dict, poi_name)
+    actual_uri = Api()._get_inspection_uri_for_poi(response_dict, poi_name)
     assert expected_uri == actual_uri
