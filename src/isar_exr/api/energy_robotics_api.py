@@ -47,7 +47,7 @@ class Api:
         query_string: str = """
             query missionReports($robot_id: String!, $number_of_latest_reports: Float!) {
                 missionReports(input: {robotId: $robot_id}
-                filter: {first: $number_of_latest_reports}) {
+                filter: {first: $number_of_latest_reports}) {   
                   page {    
                     edges {
                       node {
@@ -71,7 +71,7 @@ class Api:
         print(response)
         return response[0]["node"]["id"]
 
-    def get_last_mission_report_for_robot(self, exr_robot_id: str):
+    def get_last_mission_report_for_robot(self):
         reports = self.get_mission_report_ids_and_endtime_for_robot(
             settings.ROBOT_EXR_ID, 1
         )
@@ -106,9 +106,16 @@ class Api:
         response_dict: dict = self.client.query(query_string, params)
         return response_dict
     
+    @staticmethod
+    def get_inspection_for_poi(mission_report: list[dict], point_of_interest: str) -> str:
+        print(mission_report)
+        return next((inspection for inspection in mission_report["missionReport"]["dataPayloads"] if inspection["poiName"] == point_of_interest), None)["uri"]
+
 
 
 if __name__ == "__main__":
     api = Api()
-    print(api.get_last_mission_report_for_robot(settings.ROBOT_EXR_ID))
-    print(api.get_mission_report_ids_and_endtime_for_robot(settings.ROBOT_EXR_ID, 10))
+    report = api.get_last_mission_report_for_robot()
+    #print(report)
+    #print(api.get_mission_report_ids_and_endtime_for_robot(settings.ROBOT_EXR_ID, 10))
+    print(api.get_inspection_for_poi(report, "hvac_1"))
