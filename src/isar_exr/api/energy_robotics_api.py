@@ -107,8 +107,7 @@ class Api:
         return response_dict
     
     @staticmethod
-    def get_inspection_for_poi(mission_report: list[dict], point_of_interest: str) -> str:
-        print(mission_report)
+    def _get_inspection_for_poi(mission_report: dict, point_of_interest: str) -> str:
         return next((inspection for inspection in mission_report["missionReport"]["dataPayloads"] if inspection["poiName"] == point_of_interest), None)["uri"]
 
 

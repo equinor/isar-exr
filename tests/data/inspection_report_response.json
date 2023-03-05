@@ -1,0 +1,36 @@
+{
+    "missionReport": {
+      "dataPayloads": [
+        {
+          "dataType": "PHOTO",
+          "uri": "https://dummy1.png",
+          "poiName": "stairway_1"
+        },
+        {
+          "dataType": "PHOTO",
+          "uri": "https://dummy2.png",
+          "poiName": "box"
+        },
+        {
+          "dataType": "PHOTO",
+          "uri": "https://dummy3.png",
+          "poiName": "stairway_2"
+        },
+        {
+          "dataType": "PHOTO",
+          "uri": "https://dummy4.png",
+          "poiName": "hvac_1"
+        },
+        {
+          "dataType": "PHOTO",
+          "uri": "https://actual.png",
+          "poiName": "beds_1"
+        },
+        {
+          "dataType": "PHOTO",
+          "uri": "https://dummy6.png",
+          "poiName": "stair_1"
+        }
+      ]
+    }
+  }
