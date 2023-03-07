@@ -237,3 +237,34 @@ class EnergyRoboticsApi:
         status: AwakeStatus = AwakeStatus(result["awakeStatus"])
         success: bool = status in [AwakeStatus.Awake]
         return success
+
+    def create_mission_definition(
+        self, site_id: str, mission_name: str, robot_id: str
+    ) -> str:
+        mutation_string: str = """
+            mutation createMissionDefinition(
+                $site_id:String!, 
+                $mission_name:String!,
+                $robot_id:String) {
+                createMissionDefinition(
+                input: { 
+                    siteId: $site_id, 
+                    name: $mission_name,  
+                    requiredRobotConfig:{robotId : $robot_id }}
+                ) {
+                id
+            }}
+        """
+        params: dict = {
+            "site_id": site_id,
+            "mission_name": mission_name,
+            "robot_id": robot_id,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException from e
+
+        mission_definition_id = response_dict["createMissionDefinition"]["id"]
+        return mission_definition_id
