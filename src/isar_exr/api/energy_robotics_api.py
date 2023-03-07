@@ -268,3 +268,25 @@ class EnergyRoboticsApi:
 
         mission_definition_id = response_dict["createMissionDefinition"]["id"]
         return mission_definition_id
+
+    def start_mission_execution(self, mission_definition_id: str, robot_id: str) -> str:
+        mutation_string: str = """
+            mutation startMissionExecution($robot_id:ID!, $mission_definition_id:String!) {
+                startMissionExecution(
+                    input: { robotID: $robot_id, missionDefinitionID: $mission_definition_id }
+                ) {
+                    id
+                }
+            }
+        """
+        params: dict = {
+            "robot_id": robot_id,
+            "mission_definition_id": mission_definition_id,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException from e
+        mission_execution_id = response_dict["startMissionExecution"]["id"]
+        return mission_execution_id
