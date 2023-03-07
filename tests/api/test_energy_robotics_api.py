@@ -223,7 +223,7 @@ class Test_create_mission_definition:
         return_value = api.create_mission_definition(
             site_id="mock_site_id",
             mission_name="mock_mission_name",
-            exr_robot_id="mock_robot_id",
+            robot_id="mock_robot_id",
         )
         assert return_value == self.expected_return_id
 
@@ -234,5 +234,34 @@ class Test_create_mission_definition:
             api.create_mission_definition(
                 site_id="mock_site_id",
                 mission_name="mock_mission_name",
-                exr_robot_id="mock_robot_id",
+                robot_id="mock_robot_id",
+            )
+
+
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
+class Test_start_mission_execution:
+    expected_return_id = "mission_execution_id"
+    api_execute_response: Dict[str, Any] = {
+        "startMissionExecution": {"id": expected_return_id}
+    }
+
+    @mock.patch.object(Client, "execute", mock.Mock(return_value=api_execute_response))
+    def test_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value = api.start_mission_execution(
+            mission_definition_id="mock:mission:definition_id",
+            robot_id="mock_robot_id",
+        )
+        assert return_value == self.expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=Exception):
+            api.start_mission_execution(
+                mission_definition_id="mock:mission:definition_id",
+                robot_id="mock_robot_id",
             )
