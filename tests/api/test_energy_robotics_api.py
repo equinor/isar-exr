@@ -205,3 +205,34 @@ class TestRobotAwakeQuery:
     def test_returns_false_if_robot_is_going_toawake_status_going_to_sleep(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == False
+
+
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
+class Test_create_mission_definition:
+    expected_return_id = "mission_definition"
+    api_execute_response: Dict[str, Any] = {
+        "createMissionDefinition": {"id": expected_return_id}
+    }
+
+    @mock.patch.object(Client, "execute", mock.Mock(return_value=api_execute_response))
+    def test_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value = api.create_mission_definition(
+            site_id="mock_site_id",
+            mission_name="mock_mission_name",
+            exr_robot_id="mock_robot_id",
+        )
+        assert return_value == self.expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=Exception):
+            api.create_mission_definition(
+                site_id="mock_site_id",
+                mission_name="mock_mission_name",
+                exr_robot_id="mock_robot_id",
+            )
