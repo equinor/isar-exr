@@ -10,6 +10,14 @@ from gql import Client
 from isar_exr.api.energy_robotics_api import EnergyRoboticsApi
 from robot_interface.models.exceptions import RobotException
 from isar_exr.config.settings import settings
+from isar_exr.api.models.models import (
+    AddPointOfInterestInput,
+    Point3DInput,
+    QuaternionInput,
+    Pose3DInput,
+    PointOfInterestTypeEnum,
+    PointOfInterestActionPhotoInput,
+)
 
 
 @mock.patch(
@@ -38,6 +46,59 @@ class TestPauseMission:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=Exception):
             api.pause_current_mission("test_exr_robot_id")
+
+
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
+class Test_create_point_of_intrest:
+    expected_return_id = "point_of_interest_type_id"
+    api_point_of_intrest_response: Dict[str, Any] = {
+        "addPointOfInterest": {"id": expected_return_id}
+    }
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=api_point_of_intrest_response)
+    )
+    def test_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        position: Point3DInput = Point3DInput(x=0, y=0, z=0)
+        orientation: QuaternionInput = QuaternionInput(x=0, y=0, z=0, w=0)
+        pose: Pose3DInput = Pose3DInput(position=position, orientation=orientation)
+        action: PointOfInterestActionPhotoInput = PointOfInterestActionPhotoInput(
+            robotPose=pose, sensor="mock_sensor"
+        )
+        poi: AddPointOfInterestInput = AddPointOfInterestInput(
+            name="mock_name",
+            site="mock_site",
+            frame="mock_frame",
+            type=PointOfInterestTypeEnum.GENERIC,
+            pose=pose,
+            photoAction=action,
+        )
+        return_value = api.create_point_of_intereste(point_of_intrest_input=poi)
+        assert return_value == self.expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        position: Point3DInput = Point3DInput(x=0, y=0, z=0)
+        orientation: QuaternionInput = QuaternionInput(x=0, y=0, z=0, w=0)
+        pose: Pose3DInput = Pose3DInput(position=position, orientation=orientation)
+        action: PointOfInterestActionPhotoInput = PointOfInterestActionPhotoInput(
+            robotPose=pose, sensor="mock_sensor"
+        )
+        poi: AddPointOfInterestInput = AddPointOfInterestInput(
+            name="mock_name",
+            site="mock_site",
+            frame="mock_frame",
+            type=PointOfInterestTypeEnum.GENERIC,
+            pose=pose,
+            photoAction=action,
+        )
+        with pytest.raises(expected_exception=Exception):
+            api.create_point_of_intereste(point_of_intrest_input=poi)
 
 
 @mock.patch(
