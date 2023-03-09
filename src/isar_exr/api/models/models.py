@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
 
 
 class Point3DInput(BaseModel):
@@ -48,7 +49,7 @@ class AddPointOfInterestInput(BaseModel):
     name: str
     site: str
     frame: str
-    type: PointOfInterestTypeEnum
+    type: PointOfInterestTypeEnum = Field(default=PointOfInterestTypeEnum.GENERIC)
     pose: Pose3DInput
-    photoAction: PointOfInterestActionPhotoInput
-    videoAction: PointOfInterestActionVideoInput
+    photoAction: Optional[PointOfInterestActionPhotoInput]
+    videoAction: Optional[PointOfInterestActionVideoInput]
