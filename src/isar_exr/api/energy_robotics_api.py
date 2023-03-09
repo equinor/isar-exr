@@ -10,8 +10,16 @@ from isar_exr.api.graphql_client import GraphqlClient
 from isar_exr.models.exceptions import NoMissionRunningException
 from isar_exr.models.step_status import ExrMissionStatus
 from isar_exr.api.models.enums import AwakeStatus
+from isar_exr.api.models.models import AddPointOfInterestInput
 
 from isar_exr.config.settings import settings
+from isar_exr.api.models.models import (
+    Point3DInput,
+    QuaternionInput,
+    Pose3DInput,
+    PointOfInterestTypeEnum,
+    PointOfInterestActionPhotoInput,
+)
 
 
 class EnergyRoboticsApi:
@@ -72,6 +80,98 @@ class EnergyRoboticsApi:
         ]
         if not success:
             raise RobotException(f"Invalid status after pausing mission: '{status}'")
+
+    def create_point_of_intereste(
+        self, point_of_intrest_input: AddPointOfInterestInput
+    ) -> str:
+        mutation_string: str = """
+            mutation addPointOfInterest(
+                $name: String!, 
+                $site: String!, 
+                $frame: String!, 
+                $type: PointOfInterestTypeEnum!,
+                $position_x: Float!, 
+                $position_y: Float!, 
+                $position_z: Float!,
+                $orientation_w: Float!,
+                $orientation_x: Float!, 
+                $orientation_y: Float!, 
+                $orientation_z: Float!,
+                $action_sensor: String!,
+                $action_position_x: Float!, 
+                $action_position_y: Float!, 
+                $action_position_z: Float!,
+                $action_orientation_w: Float!,
+                $action_orientation_x: Float!, 
+                $action_orientation_y: Float!, 
+                $action_orientation_z: Float!,
+                
+            ) {
+                addPointOfInterest(input: {
+                    name: $name, 
+                    site: $site,
+                    frame: $frame,
+                    type: $type,
+                    pose: {
+                        position: {
+                            x: $position_x
+                            y: $position_y
+                            z: $position_z
+                        }
+                        orientation: {
+                            w: $orientation_w
+                            x: $orientation_x
+                            y: $orientation_y
+                            z: $orientation_z
+                    }   }  
+                    photoAction: {
+                        robotPose :{
+                            position: {
+                                x: $action_position_x
+                                y: $action_position_y
+                                z: $action_position_z
+                            }
+                            orientation: {
+                                w: $action_orientation_w
+                                x: $action_orientation_x
+                                y: $action_orientation_y
+                                z: $action_orientation_z
+                        }   }
+                        sensor: $action_sensor
+                    }
+                }) {
+                    id
+                }
+            }
+        """
+        params: dict = {
+            "name": point_of_intrest_input.name,
+            "site": point_of_intrest_input.site,
+            "frame": point_of_intrest_input.frame,
+            "type": point_of_intrest_input.type,
+            "position_x": point_of_intrest_input.pose.position.x,
+            "position_y": point_of_intrest_input.pose.position.y,
+            "position_z": point_of_intrest_input.pose.position.z,
+            "orientation_w": point_of_intrest_input.pose.orientation.w,
+            "orientation_x": point_of_intrest_input.pose.orientation.x,
+            "orientation_y": point_of_intrest_input.pose.orientation.y,
+            "orientation_z": point_of_intrest_input.pose.orientation.z,
+            "action_position_x": point_of_intrest_input.photoAction.robotPose.position.x,
+            "action_position_y": point_of_intrest_input.photoAction.robotPose.position.y,
+            "action_position_z": point_of_intrest_input.photoAction.robotPose.position.z,
+            "action_orientation_w": point_of_intrest_input.photoAction.robotPose.orientation.w,
+            "action_orientation_x": point_of_intrest_input.photoAction.robotPose.orientation.x,
+            "action_orientation_y": point_of_intrest_input.photoAction.robotPose.orientation.y,
+            "action_orientation_z": point_of_intrest_input.photoAction.robotPose.orientation.z,
+            "action_sensor": point_of_intrest_input.photoAction.sensor,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException(e)
+
+        return response_dict["addPointOfInterest"]["id"]
 
     def create_dock_robot_task_definition(
         self, site_id: str, task_name: str, docking_station_id: str
