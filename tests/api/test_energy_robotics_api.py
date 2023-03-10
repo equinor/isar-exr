@@ -52,14 +52,14 @@ class TestPauseMission:
     "isar_exr.api.graphql_client.get_access_token",
     mock.Mock(return_value="test_token"),
 )
-class Test_create_point_of_intrest:
+class TestCreatePointOfinterest:
     expected_return_id = "point_of_interest_type_id"
-    api_point_of_intrest_response: Dict[str, Any] = {
+    api_point_of_interest_response: Dict[str, Any] = {
         "addPointOfInterest": {"id": expected_return_id}
     }
 
     @mock.patch.object(
-        Client, "execute", mock.Mock(return_value=api_point_of_intrest_response)
+        Client, "execute", mock.Mock(return_value=api_point_of_interest_response)
     )
     def test_succeeds_if_id_returned(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -77,7 +77,7 @@ class Test_create_point_of_intrest:
             pose=pose,
             photoAction=action,
         )
-        return_value = api.create_point_of_intereste(point_of_intrest_input=poi)
+        return_value = api.create_point_of_interest(point_of_interest_input=poi)
         assert return_value == self.expected_return_id
 
     @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
@@ -97,8 +97,8 @@ class Test_create_point_of_intrest:
             pose=pose,
             photoAction=action,
         )
-        with pytest.raises(expected_exception=Exception):
-            api.create_point_of_intereste(point_of_intrest_input=poi)
+        with pytest.raises(expected_exception=RobotException):
+            api.create_point_of_interest(point_of_interest_input=poi)
 
 
 @mock.patch(
@@ -272,7 +272,7 @@ class TestRobotAwakeQuery:
     "isar_exr.api.graphql_client.get_access_token",
     mock.Mock(return_value="test_token"),
 )
-class Test_create_mission_definition:
+class TestCreateMissionDefinition:
     expected_return_id = "mission_definition"
     api_execute_response: Dict[str, Any] = {
         "createMissionDefinition": {"id": expected_return_id}
@@ -291,7 +291,7 @@ class Test_create_mission_definition:
     @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
     def test_api_return_exeption(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
-        with pytest.raises(expected_exception=Exception):
+        with pytest.raises(expected_exception=RobotException):
             api.create_mission_definition(
                 site_id="mock_site_id",
                 mission_name="mock_mission_name",
@@ -303,7 +303,7 @@ class Test_create_mission_definition:
     "isar_exr.api.graphql_client.get_access_token",
     mock.Mock(return_value="test_token"),
 )
-class Test_start_mission_execution:
+class TestStartMissionExecution:
     expected_return_id = "mission_execution_id"
     api_execute_response: Dict[str, Any] = {
         "startMissionExecution": {"id": expected_return_id}
@@ -321,7 +321,7 @@ class Test_start_mission_execution:
     @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
     def test_api_return_exeption(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
-        with pytest.raises(expected_exception=Exception):
+        with pytest.raises(expected_exception=RobotException):
             api.start_mission_execution(
                 mission_definition_id="mock:mission:definition_id",
                 robot_id="mock_robot_id",

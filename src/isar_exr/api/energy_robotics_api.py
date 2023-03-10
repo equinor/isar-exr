@@ -81,8 +81,8 @@ class EnergyRoboticsApi:
         if not success:
             raise RobotException(f"Invalid status after pausing mission: '{status}'")
 
-    def create_point_of_intereste(
-        self, point_of_intrest_input: AddPointOfInterestInput
+    def create_point_of_interest(
+        self, point_of_interest_input: AddPointOfInterestInput
     ) -> str:
         mutation_string: str = """
             mutation addPointOfInterest(
@@ -145,25 +145,25 @@ class EnergyRoboticsApi:
             }
         """
         params: dict = {
-            "name": point_of_intrest_input.name,
-            "site": point_of_intrest_input.site,
-            "frame": point_of_intrest_input.frame,
-            "type": point_of_intrest_input.type,
-            "position_x": point_of_intrest_input.pose.position.x,
-            "position_y": point_of_intrest_input.pose.position.y,
-            "position_z": point_of_intrest_input.pose.position.z,
-            "orientation_w": point_of_intrest_input.pose.orientation.w,
-            "orientation_x": point_of_intrest_input.pose.orientation.x,
-            "orientation_y": point_of_intrest_input.pose.orientation.y,
-            "orientation_z": point_of_intrest_input.pose.orientation.z,
-            "action_position_x": point_of_intrest_input.photoAction.robotPose.position.x,
-            "action_position_y": point_of_intrest_input.photoAction.robotPose.position.y,
-            "action_position_z": point_of_intrest_input.photoAction.robotPose.position.z,
-            "action_orientation_w": point_of_intrest_input.photoAction.robotPose.orientation.w,
-            "action_orientation_x": point_of_intrest_input.photoAction.robotPose.orientation.x,
-            "action_orientation_y": point_of_intrest_input.photoAction.robotPose.orientation.y,
-            "action_orientation_z": point_of_intrest_input.photoAction.robotPose.orientation.z,
-            "action_sensor": point_of_intrest_input.photoAction.sensor,
+            "name": point_of_interest_input.name,
+            "site": point_of_interest_input.site,
+            "frame": point_of_interest_input.frame,
+            "type": point_of_interest_input.type,
+            "position_x": point_of_interest_input.pose.position.x,
+            "position_y": point_of_interest_input.pose.position.y,
+            "position_z": point_of_interest_input.pose.position.z,
+            "orientation_w": point_of_interest_input.pose.orientation.w,
+            "orientation_x": point_of_interest_input.pose.orientation.x,
+            "orientation_y": point_of_interest_input.pose.orientation.y,
+            "orientation_z": point_of_interest_input.pose.orientation.z,
+            "action_position_x": point_of_interest_input.photoAction.robotPose.position.x,
+            "action_position_y": point_of_interest_input.photoAction.robotPose.position.y,
+            "action_position_z": point_of_interest_input.photoAction.robotPose.position.z,
+            "action_orientation_w": point_of_interest_input.photoAction.robotPose.orientation.w,
+            "action_orientation_x": point_of_interest_input.photoAction.robotPose.orientation.x,
+            "action_orientation_y": point_of_interest_input.photoAction.robotPose.orientation.y,
+            "action_orientation_z": point_of_interest_input.photoAction.robotPose.orientation.z,
+            "action_sensor": point_of_interest_input.photoAction.sensor,
         }
 
         try:
