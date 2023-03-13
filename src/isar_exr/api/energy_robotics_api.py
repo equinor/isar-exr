@@ -390,3 +390,93 @@ class EnergyRoboticsApi:
             raise RobotException from e
         mission_execution_id = response_dict["startMissionExecution"]["id"]
         return mission_execution_id
+
+    def create_stage(self, site_id: str) -> str:
+        mutation_string: str = """
+            mutation openSiteStage($site_id:String!) {
+                openSiteStage(
+                     siteId: $site_id, 
+                ) {
+                    id
+                }
+            }
+        """
+        params: dict = {
+            "site_id": site_id,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException from e
+        mission_execution_id = response_dict["openSiteStage"]["id"]
+        return mission_execution_id
+
+    def add_point_of_intrest_to_stage(self, POI_id: str, stage_id: str) -> str:
+        mutation_string: str = """
+            mutation addPointOfInterestToStage($POI_id:String!,$stage_id:String!) {
+                addPointOfInterestToStage(
+                     pointOfInterestId: $POI_id, 
+                     siteStageId: $stage_id,
+                ) {
+                    id
+                }
+            }
+        """
+        params: dict = {
+            "POI_id": POI_id,
+            "stage_id": stage_id,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException from e
+        mission_execution_id = response_dict["addPointOfInterestToStage"]["id"]
+        return mission_execution_id
+
+    def commit_site_to_snapshot(self, stage_id: str) -> str:
+        mutation_string: str = """
+            mutation commitSiteChanges($stage_id:String!) {
+                commitSiteChanges(
+                     siteStageId: $stage_id,
+                ) {
+                    id
+                }
+            }
+        """
+        params: dict = {
+            "stage_id": stage_id,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException from e
+        mission_execution_id = response_dict["commitSiteChanges"]["id"]
+        return mission_execution_id
+
+    def set_snapshot_as_head(self, snapshot_id: str, site_id: str) -> str:
+        mutation_string: str = """
+            mutation selectCurrentSiteSnapshotHead($snapshot_id:String!,$site_id:String!) {
+                selectCurrentSiteSnapshotHead(
+                     siteSnapshotId: $snapshot_id,
+                     siteId: $site_id,
+                ) {
+                    id
+                }
+            }
+        """
+        params: dict = {
+            "site_id": site_id,
+            "snapshot_id": snapshot_id,
+        }
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+        except Exception as e:
+            raise RobotException from e
+        mission_execution_id = response_dict["selectCurrentSiteSnapshotHead"]["id"]
+        return mission_execution_id
+
+
