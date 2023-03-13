@@ -478,5 +478,3 @@ class EnergyRoboticsApi:
             raise RobotException from e
         mission_execution_id = response_dict["selectCurrentSiteSnapshotHead"]["id"]
         return mission_execution_id
-
-

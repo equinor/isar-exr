@@ -326,3 +326,90 @@ class TestStartMissionExecution:
                 mission_definition_id="mock:mission:definition_id",
                 robot_id="mock_robot_id",
             )
+
+
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
+class TestStageAndSnapshot:
+    create_stage_expected_return_id = "stage_id"
+    api_execute_response_crate_stage: Dict[str, Any] = {
+        "openSiteStage": {"id": create_stage_expected_return_id}
+    }
+    add_poi_to_stage_expected_return_id = "stage_id"
+    api_execute_response_add_poi_to_stage: Dict[str, Any] = {
+        "addPointOfInterestToStage": {"id": add_poi_to_stage_expected_return_id}
+    }
+    commit_site_expected_return_id = "snapshot_id"
+    api_execute_response_commit_site: Dict[str, Any] = {
+        "commitSiteChanges": {"id": commit_site_expected_return_id}
+    }
+    set_head_expected_return_id = "snapshot_id"
+    api_execute_response_set_head: Dict[str, Any] = {
+        "selectCurrentSiteSnapshotHead": {"id": set_head_expected_return_id}
+    }
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=api_execute_response_crate_stage)
+    )
+    def test_create_stage_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value = api.create_stage(site_id="mock_site_id")
+        assert return_value == self.create_stage_expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_create_stage_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.create_stage(site_id="mock_site_id")
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=api_execute_response_add_poi_to_stage)
+    )
+    def test_add_poi_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value = api.add_point_of_intrest_to_stage(
+            stage_id="mock_stage_id", POI_id="mock_poi_id"
+        )
+        assert return_value == self.add_poi_to_stage_expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_add_poi_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.add_point_of_intrest_to_stage(
+                stage_id="mock_stage_id", POI_id="mock_poi_id"
+            )
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=api_execute_response_commit_site)
+    )
+    def test_commit_site_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value = api.commit_site_to_snapshot(stage_id="mock_stage_id")
+        assert return_value == self.commit_site_expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_commit_site_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.commit_site_to_snapshot(stage_id="mock_stage_id")
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=api_execute_response_set_head)
+    )
+    def test_set_head_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value = api.set_snapshot_as_head(
+            snapshot_id="mock_snapshot_id", site_id="mock_site_id"
+        )
+        assert return_value == self.set_head_expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_set_head_api_return_exeption(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.set_snapshot_as_head(
+                snapshot_id="mock_snapshot_id", site_id="mock_site_id"
+            )
