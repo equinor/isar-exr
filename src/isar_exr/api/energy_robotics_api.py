@@ -255,6 +255,42 @@ class EnergyRoboticsApi:
 
         return response_dict["createWaypointTaskDefinition"]["id"]
 
+    def add_task_to_mission_definition(
+        self, task_id: str, mission_definition_id: str, index: int = -1
+    ):
+        params: dict[str, Any] = {
+            "missionTaskDefinitionId": task_id,
+            "missionDefinitionId": mission_definition_id,
+        }
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+        mutation_args: dict[str, Any] = {
+            "missionTaskDefinitionId": variable_definitions_graphql.missionTaskDefinitionId,
+            "missionDefinitionId": variable_definitions_graphql.missionDefinitionId,
+        }
+        if index >= 0:
+            mutation_args["index"] = variable_definitions_graphql.index
+            params["index"] = index
+
+        add_task_to_mission_definition_mutation = DSLMutation(
+            self.client.schema.Mutation.addTaskToMissionDefinition.args(
+                **mutation_args
+            ).select(self.client.schema.MissionDefinitionType.id)
+        )
+
+        add_task_to_mission_definition_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(add_task_to_mission_definition_mutation), params
+            )
+        except Exception as e:
+            raise RobotException(e)
+
+        return response_dict["addTaskToMissionDefinition"]["id"]
+
     def wake_up_robot(
         self, exr_robot_id: str, timeout: int = settings.MAX_TIME_FOR_WAKEUP
     ) -> None:
