@@ -26,7 +26,10 @@ def test_to_step_status():
     "query",
     mock.Mock(return_value={"currentMissionExecution": {"status": "PAUSE_REQUESTED"}}),
 )
-@mock.patch.object(GraphqlClient, "__init__", mock.Mock(return_value=None))
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
 def test_get_step_status_success():
     expected_status: StepStatus = StepStatus.InProgress
     api = EnergyRoboticsApi()
@@ -38,7 +41,10 @@ def test_get_step_status_success():
 @mock.patch.object(
     EnergyRoboticsApi, "is_mission_running", mock.Mock(return_value=False)
 )
-@mock.patch.object(EnergyRoboticsApi, "__init__", mock.Mock(return_value=None))
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
 def test_get_step_status_error_mission_is_not_running():
     api = EnergyRoboticsApi()
     with pytest.raises(NoMissionRunningException):
