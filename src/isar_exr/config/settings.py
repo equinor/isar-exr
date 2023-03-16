@@ -1,4 +1,5 @@
 import importlib.resources as pkg_resources
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import BaseSettings, Field
@@ -22,6 +23,10 @@ class Settings(BaseSettings):
     ROBOT_API_PASSWORD: str = Field(default="example_password")
     ROBOT_AUTH_URL: str = Field(
         default="https://login.energy-robotics.com/api/loginApi"
+    )
+
+    PATH_TO_GRAPHQL_SCHEMA: Path = Path(__file__).parent.joinpath(
+        "../../../docs/schema.graphql"
     )
 
     class Config:
