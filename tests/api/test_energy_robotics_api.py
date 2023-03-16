@@ -439,3 +439,88 @@ class TestStageAndSnapshot:
             api.set_snapshot_as_head(
                 snapshot_id="mock_snapshot_id", site_id="mock_site_id"
             )
+
+
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
+class TestAddRemoveTaskToFromMissionDefinition:
+    task_id = "dummy_task_id"
+    mission_definition_id = "dummy_mission_id"
+    index = 2
+
+    add_task_response: Dict[str, Any] = {
+        "addTaskToMissionDefinition": {"id": "dummy_mission_id"}
+    }
+
+    remove_task_response: Dict[str, Any] = {
+        "removeTaskFromMissionDefinition": {"id": "dummy_mission_id"}
+    }
+
+    @mock.patch.object(
+        GraphqlClient,
+        "query",
+        mock.Mock(return_value=add_task_response),
+    )
+    def test_add_task_to_mission_definition_no_index_success(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        received_mission_definition_id: str = api.add_task_to_mission_definition(
+            task_id=self.task_id,
+            mission_definition_id=self.mission_definition_id,
+        )
+        assert (
+            received_mission_definition_id
+            == self.add_task_response["addTaskToMissionDefinition"]["id"]
+        )
+
+    @mock.patch.object(
+        GraphqlClient,
+        "query",
+        mock.Mock(return_value=add_task_response),
+    )
+    def test_add_task_to_mission_definition_specific_index_success(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        received_mission_definition_id: str = api.add_task_to_mission_definition(
+            task_id=self.task_id,
+            mission_definition_id=self.mission_definition_id,
+            index=self.index,
+        )
+        assert (
+            received_mission_definition_id
+            == self.add_task_response["addTaskToMissionDefinition"]["id"]
+        )
+
+    @mock.patch.object(GraphqlClient, "query", mock.Mock(side_effect=Exception()))
+    def test_add_task_to_mission_definition_error(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.add_task_to_mission_definition(
+                task_id=self.task_id,
+                mission_definition_id=self.mission_definition_id,
+            )
+
+    @mock.patch.object(
+        GraphqlClient,
+        "query",
+        mock.Mock(return_value=remove_task_response),
+    )
+    def test_remove_task_from_mission_definition_success(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        received_mission_definition_id: str = api.remove_task_from_mission_definition(
+            task_id=self.task_id,
+            mission_definition_id=self.mission_definition_id,
+        )
+        assert (
+            received_mission_definition_id
+            == self.remove_task_response["removeTaskFromMissionDefinition"]["id"]
+        )
+
+    @mock.patch.object(GraphqlClient, "query", mock.Mock(side_effect=Exception()))
+    def test_remove_task_from_mission_definition_error(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.remove_task_from_mission_definition(
+                task_id=self.task_id,
+                mission_definition_id=self.mission_definition_id,
+            )
