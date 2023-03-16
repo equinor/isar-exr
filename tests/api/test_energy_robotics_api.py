@@ -105,6 +105,10 @@ class TestCreatePointOfinterest:
     "isar_exr.api.graphql_client.get_access_token",
     mock.Mock(return_value="test_token"),
 )
+@mock.patch(
+    "isar_exr.api.energy_robotics_api.to_dict",
+    mock.Mock(return_value="mocked_dict_version"),
+)
 class TestTaskCreatorFunctions:
     site_id = "Costa Nova"
     task_name = "dummy task"
@@ -236,36 +240,58 @@ class TestWakeUpRobot:
     mock.Mock(return_value="test_token"),
 )
 class TestRobotAwakeQuery:
-    awake_status_awake: Dict[str, Any] = {"awakeStatus": AwakeStatus.Awake}
-    awake_status_waking_up: Dict[str, Any] = {"awakeStatus": AwakeStatus.WakingUp}
-    awake_status_asleep: Dict[str, Any] = {"awakeStatus": AwakeStatus.Asleep}
-    awake_status_going_to_sleep: Dict[str, Any] = {
-        "awakeStatus": AwakeStatus.GoingToSleep
+    mocked_response_awake: Dict[str, Any] = {
+        "currentRobotStatus": {"isConnected": True, "awakeStatus": AwakeStatus.Awake}
+    }
+    mocked_response_waking_up: Dict[str, Any] = {
+        "currentRobotStatus": {"isConnected": True, "awakeStatus": AwakeStatus.WakingUp}
+    }
+    mocked_response_going_to_sleep: Dict[str, Any] = {
+        "currentRobotStatus": {
+            "isConnected": True,
+            "awakeStatus": AwakeStatus.GoingToSleep,
+        }
+    }
+    mocked_response_asleep: Dict[str, Any] = {
+        "currentRobotStatus": {"isConnected": True, "awakeStatus": AwakeStatus.Asleep}
+    }
+    mocked_response_not_connected: Dict[str, Any] = {
+        "currentRobotStatus": {"isConnected": False, "awakeStatus": AwakeStatus.Asleep}
     }
 
-    @mock.patch.object(Client, "execute", mock.Mock(return_value=awake_status_awake))
+    @mock.patch.object(Client, "execute", mock.Mock(return_value=mocked_response_awake))
     def test_returns_true_if_robot_is_awake(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == True
 
     @mock.patch.object(
-        Client, "execute", mock.Mock(return_value=awake_status_waking_up)
+        Client, "execute", mock.Mock(return_value=mocked_response_waking_up)
     )
     def test_returns_false_if_robot_is_waking_up(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == False
 
-    @mock.patch.object(Client, "execute", mock.Mock(return_value=awake_status_asleep))
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=mocked_response_asleep)
+    )
     def test_returns_false_if_robot_is_asleep(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == False
 
     @mock.patch.object(
-        Client, "execute", mock.Mock(return_value=awake_status_going_to_sleep)
+        Client, "execute", mock.Mock(return_value=mocked_response_going_to_sleep)
     )
-    def test_returns_false_if_robot_is_going_toawake_status_going_to_sleep(self):
+    def test_returns_false_if_robot_is_going_to_awake_status_going_to_sleep(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == False
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=mocked_response_not_connected)
+    )
+    def test_raises_exception_if_robot_is_not_connected(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        with pytest.raises(expected_exception=RobotException):
+            api.is_robot_awake("test_exr_robot_id")
 
 
 @mock.patch(
@@ -369,7 +395,7 @@ class TestStageAndSnapshot:
     )
     def test_add_poi_succeeds_if_id_returned(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
-        return_value = api.add_point_of_intrest_to_stage(
+        return_value = api.add_point_of_interest_to_stage(
             stage_id="mock_stage_id", POI_id="mock_poi_id"
         )
         assert return_value == self.add_poi_to_stage_expected_return_id
@@ -378,7 +404,7 @@ class TestStageAndSnapshot:
     def test_add_poi_api_return_exeption(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
-            api.add_point_of_intrest_to_stage(
+            api.add_point_of_interest_to_stage(
                 stage_id="mock_stage_id", POI_id="mock_poi_id"
             )
 
