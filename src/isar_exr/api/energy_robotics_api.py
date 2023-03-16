@@ -1,6 +1,8 @@
 from datetime import datetime
+import json
 from time import sleep
 from typing import Any, Dict
+from gql import gql
 from isar_exr.api.models.models import Point3DInput, Pose3DStampedInput, QuaternionInput
 
 from robot_interface.models.exceptions import RobotException
@@ -20,56 +22,87 @@ from isar_exr.api.models.models import (
     PointOfInterestTypeEnum,
     PointOfInterestActionPhotoInput,
 )
+from gql.dsl import DSLVariableDefinitions, DSLMutation, DSLQuery, dsl_gql
+
+
+def to_dict(obj):
+    return json.loads(json.dumps(obj, default=lambda o: o.__dict__))
 
 
 class EnergyRoboticsApi:
     def __init__(self):
         self.client = GraphqlClient()
+        self.schema = self.client.schema
 
     def get_step_status(self, exr_robot_id: str) -> StepStatus:
-        query_string: str = """
-            query currentMissionExecution($robot_id: String!) {
-                currentMissionExecution(robotID: $robot_id) {
-                    status
-                    }
-                }
-        """
-        params: dict = {"robot_id": exr_robot_id}
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        current_mission_execution_query = DSLQuery(
+            self.schema.Query.currentMissionExecution.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(self.schema.MissionExecutionType.status)
+        )
+
+        current_mission_execution_query.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        params: dict = {"robotID": exr_robot_id}
+
         if not self.is_mission_running(exr_robot_id):
             raise NoMissionRunningException(
                 f"Cannot get EXR mission status - No EXR mission is running for robot with id {exr_robot_id}"
             )
 
-        response_dict: dict[str, Any] = self.client.query(query_string, params)
+        response_dict: dict[str, Any] = self.client.query(
+            dsl_gql(current_mission_execution_query), params
+        )
         step_status = ExrMissionStatus(
             response_dict["currentMissionExecution"]["status"]
         )
         return step_status.to_step_status()
 
-    def is_mission_running(self, exr_robot_id: str):
-        query_string: str = """
-            query isMissionRunning($robot_id: String!) {
-                isMissionRunning(robotID: $robot_id)
-                }
-        """
-        params: dict = {"robot_id": exr_robot_id}
-        response_dict: dict[str, Any] = self.client.query(query_string, params)
-        is_running: bool = response_dict["isMissionRunning"]
-        return is_running
+    def is_mission_running(self, exr_robot_id: str) -> bool:
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        is_mission_running_query = DSLQuery(
+            self.schema.Query.isMissionRunning.args(
+                robotID=variable_definitions_graphql.robotID
+            )
+        )
+
+        is_mission_running_query.variable_definitions = variable_definitions_graphql
+
+        params: dict = {"robotID": exr_robot_id}
+        response_dict: dict[str, Any] = self.client.query(
+            dsl_gql(is_mission_running_query), params
+        )
+
+        return response_dict["isMissionRunning"]
 
     def pause_current_mission(self, exr_robot_id: str) -> None:
-        query_string: str = """
-            mutation pauseMission($robot_id: String!)
-            {
-                pauseMissionExecution(robotID:$robot_id)
-                {
-                    id, status, failures
-                }
-            }
-        """
-        params: dict = {"robot_id": exr_robot_id}
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        pause_current_mission_mutation = DSLMutation(
+            self.schema.Mutation.pauseMissionExecution.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.MissionExecutionType.id,
+                self.schema.MissionExecutionType.status,
+                self.schema.MissionExecutionType.failures,
+            )
+        )
+
+        pause_current_mission_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            result: Dict[str, Any] = self.client.query(query_string, params)
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(pause_current_mission_mutation), params
+            )
         except Exception as e:
             raise RobotException(e)
 
@@ -84,90 +117,26 @@ class EnergyRoboticsApi:
     def create_point_of_interest(
         self, point_of_interest_input: AddPointOfInterestInput
     ) -> str:
-        mutation_string: str = """
-            mutation addPointOfInterest(
-                $name: String!, 
-                $site: String!, 
-                $frame: String!, 
-                $type: PointOfInterestTypeEnum!,
-                $position_x: Float!, 
-                $position_y: Float!, 
-                $position_z: Float!,
-                $orientation_w: Float!,
-                $orientation_x: Float!, 
-                $orientation_y: Float!, 
-                $orientation_z: Float!,
-                $action_sensor: String!,
-                $action_position_x: Float!, 
-                $action_position_y: Float!, 
-                $action_position_z: Float!,
-                $action_orientation_w: Float!,
-                $action_orientation_x: Float!, 
-                $action_orientation_y: Float!, 
-                $action_orientation_z: Float!,
-                
-            ) {
-                addPointOfInterest(input: {
-                    name: $name, 
-                    site: $site,
-                    frame: $frame,
-                    type: $type,
-                    pose: {
-                        position: {
-                            x: $position_x
-                            y: $position_y
-                            z: $position_z
-                        }
-                        orientation: {
-                            w: $orientation_w
-                            x: $orientation_x
-                            y: $orientation_y
-                            z: $orientation_z
-                    }   }  
-                    photoAction: {
-                        robotPose :{
-                            position: {
-                                x: $action_position_x
-                                y: $action_position_y
-                                z: $action_position_z
-                            }
-                            orientation: {
-                                w: $action_orientation_w
-                                x: $action_orientation_x
-                                y: $action_orientation_y
-                                z: $action_orientation_z
-                        }   }
-                        sensor: $action_sensor
-                    }
-                }) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "name": point_of_interest_input.name,
-            "site": point_of_interest_input.site,
-            "frame": point_of_interest_input.frame,
-            "type": point_of_interest_input.type,
-            "position_x": point_of_interest_input.pose.position.x,
-            "position_y": point_of_interest_input.pose.position.y,
-            "position_z": point_of_interest_input.pose.position.z,
-            "orientation_w": point_of_interest_input.pose.orientation.w,
-            "orientation_x": point_of_interest_input.pose.orientation.x,
-            "orientation_y": point_of_interest_input.pose.orientation.y,
-            "orientation_z": point_of_interest_input.pose.orientation.z,
-            "action_position_x": point_of_interest_input.photoAction.robotPose.position.x,
-            "action_position_y": point_of_interest_input.photoAction.robotPose.position.y,
-            "action_position_z": point_of_interest_input.photoAction.robotPose.position.z,
-            "action_orientation_w": point_of_interest_input.photoAction.robotPose.orientation.w,
-            "action_orientation_x": point_of_interest_input.photoAction.robotPose.orientation.x,
-            "action_orientation_y": point_of_interest_input.photoAction.robotPose.orientation.y,
-            "action_orientation_z": point_of_interest_input.photoAction.robotPose.orientation.z,
-            "action_sensor": point_of_interest_input.photoAction.sensor,
+        params: dict[str, Any] = {
+            "AddPointOfInterestInput": to_dict(point_of_interest_input),
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        create_point_of_interest_mutation = DSLMutation(
+            self.schema.Mutation.addPointOfInterest.args(
+                input=variable_definitions_graphql.AddPointOfInterestInput
+            ).select(self.schema.PointOfInterestType.id)
+        )
+
+        create_point_of_interest_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(create_point_of_interest_mutation), params
+            )
         except Exception as e:
             raise RobotException(e)
 
@@ -176,29 +145,36 @@ class EnergyRoboticsApi:
     def create_dock_robot_task_definition(
         self, site_id: str, task_name: str, docking_station_id: str
     ) -> str:
-        mutation_string: str = """
-            mutation createDockRobotTaskDefinition($site_id: String!, $task_name: String!, $docking_station_id: String!) {
-                createDockRobotTaskDefinition(input: {
-                    siteId: $site_id, 
-                    name: $task_name, 
-                    dockingStationId: $docking_station_id
-                }) {
-                    id
-                    isDynamicMission
-                    waypoint {
-                        waypointId
-                    }
-                }
-            }
-        """
-        params: dict = {
-            "site_id": site_id,
-            "task_name": task_name,
-            "docking_station_id": docking_station_id,
+        params: dict[str, Any] = {
+            "siteId": site_id,
+            "name": task_name,
+            "dockingStationId": docking_station_id,
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        mutation_args: dict[str, Any] = {
+            "input": {
+                "siteId": variable_definitions_graphql.siteId,
+                "name": variable_definitions_graphql.name,
+                "dockingStationId": variable_definitions_graphql.dockingStationId,
+            }
+        }
+
+        create_dock_robot_task_definition_mutation = DSLMutation(
+            self.schema.Mutation.createDockRobotTaskDefinition.args(
+                **mutation_args
+            ).select(self.schema.DockRobotTaskDefinitionType.id)
+        )
+
+        create_dock_robot_task_definition_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(create_dock_robot_task_definition_mutation), params
+            )
         except Exception as e:
             raise RobotException(e)
 
@@ -207,25 +183,36 @@ class EnergyRoboticsApi:
     def create_point_of_interest_inspection_task_definition(
         self, site_id: str, task_name: str, point_of_interest_id: str
     ) -> str:
-        mutation_string: str = """
-            mutation createPoiInspectionTaskDefinition($site_id: String!, $task_name: String!, $point_of_interest_id: String!) {
-                createPoiInspectionTaskDefinition(input: {
-                    siteId: $site_id, 
-                    name: $task_name, 
-                    poiId: $point_of_interest_id
-                }) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "site_id": site_id,
-            "task_name": task_name,
-            "point_of_interest_id": point_of_interest_id,
+        params: dict[str, Any] = {
+            "siteId": site_id,
+            "name": task_name,
+            "poiId": point_of_interest_id,
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        mutation_args: dict[str, Any] = {
+            "input": {
+                "siteId": variable_definitions_graphql.siteId,
+                "name": variable_definitions_graphql.name,
+                "poiId": variable_definitions_graphql.poiId,
+            }
+        }
+
+        create_poi_inspection_task_definition_mutation = DSLMutation(
+            self.schema.Mutation.createPoiInspectionTaskDefinition.args(
+                **mutation_args
+            ).select(self.schema.PoiInspectionTaskDefinitionType.id)
+        )
+
+        create_poi_inspection_task_definition_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(create_poi_inspection_task_definition_mutation), params
+            )
         except Exception as e:
             raise RobotException(e)
 
@@ -234,56 +221,35 @@ class EnergyRoboticsApi:
     def create_waypoint_task_definition(
         self, site_id: str, task_name: str, pose_3D_stamped_input: Pose3DStampedInput
     ) -> str:
-        mutation_string: str = """
-            mutation createWaypointTaskDefinition(
-                $site_id: String!, 
-                $task_name: String!, 
-                $timestamp: Timestamp!, 
-                $position_x: Float!, 
-                $position_y: Float!, 
-                $position_z: Float!,
-                $orientation_w: Float!,
-                $orientation_x: Float!, 
-                $orientation_y: Float!, 
-                $orientation_z: Float!,
-            ) {
-                createWaypointTaskDefinition(input: {
-                    siteId: $site_id, 
-                    name: $task_name,
-                    waypoint: {
-                        timestamp: $timestamp
-                        position: {
-                            x: $position_x
-                            y: $position_y
-                            z: $position_z
-                        }
-                        orientation: {
-                            w: $orientation_w
-                            x: $orientation_x
-                            y: $orientation_y
-                            z: $orientation_z
-                        }
-                    }
-                }) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "site_id": site_id,
-            "task_name": task_name,
-            "timestamp": pose_3D_stamped_input.timestamp,
-            "position_x": pose_3D_stamped_input.position.x,
-            "position_y": pose_3D_stamped_input.position.y,
-            "position_z": pose_3D_stamped_input.position.z,
-            "orientation_w": pose_3D_stamped_input.orientation.w,
-            "orientation_x": pose_3D_stamped_input.orientation.x,
-            "orientation_y": pose_3D_stamped_input.orientation.y,
-            "orientation_z": pose_3D_stamped_input.orientation.z,
+        params: dict[str, Any] = {
+            "siteId": site_id,
+            "name": task_name,
+            "waypoint": to_dict(pose_3D_stamped_input),
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        mutation_args: dict[str, Any] = {
+            "input": {
+                "siteId": variable_definitions_graphql.siteId,
+                "name": variable_definitions_graphql.name,
+                "waypoint": variable_definitions_graphql.waypoint,
+            }
+        }
+        create_waypoint_task_definition_mutation = DSLMutation(
+            self.schema.Mutation.createWaypointTaskDefinition.args(
+                **mutation_args
+            ).select(self.schema.WaypointTaskDefinitionType.id)
+        )
+
+        create_waypoint_task_definition_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(create_waypoint_task_definition_mutation), params
+            )
         except Exception as e:
             raise RobotException(e)
 
@@ -292,18 +258,25 @@ class EnergyRoboticsApi:
     def wake_up_robot(
         self, exr_robot_id: str, timeout: int = settings.MAX_TIME_FOR_WAKEUP
     ) -> None:
-        query_string: str = """
-            mutation wakeUp($robot_id: String!)
-            {
-                executeAwakeCommand(targetState: AWAKE, robotID:$robot_id)
-                {
-                    id
-                }
-            }
-        """
-        params: dict = {"robot_id": exr_robot_id}
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        wake_up_robot_mutation = DSLMutation(
+            self.schema.Mutation.executeAwakeCommand.args(
+                targetState=AwakeStatus.Awake,
+                robotID=variable_definitions_graphql.robotID,
+            ).select(
+                self.schema.RobotCommandExecutionType.id,
+            )
+        )
+
+        wake_up_robot_mutation.variable_definitions = variable_definitions_graphql
+
         try:
-            result: Dict[str, Any] = self.client.query(query_string, params)
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(wake_up_robot_mutation), params
+            )
         except Exception as e:
             raise RobotException(e)
 
@@ -319,50 +292,67 @@ class EnergyRoboticsApi:
             sleep(1)
 
     def is_robot_awake(self, exr_robot_id: str) -> bool:
-        query_string: str = """
-            query checkIfAwake($robot_id: String!)
-            {
-                currentRobotStatus(robotID:$robot_id)
-                {
-                    awakeStatus
-                }
-            }
-        """
-        params: dict = {"robot_id": exr_robot_id}
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        check_if_awake_query = DSLQuery(
+            self.schema.Query.currentRobotStatus.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.RobotStatusType.isConnected,
+                self.schema.RobotStatusType.awakeStatus,
+            )
+        )
+
+        check_if_awake_query.variable_definitions = variable_definitions_graphql
+
         try:
-            result: Dict[str, Any] = self.client.query(query_string, params)
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(check_if_awake_query), params
+            )
         except Exception as e:
             raise RobotException(e)
 
-        status: AwakeStatus = AwakeStatus(result["awakeStatus"])
+        if not result["currentRobotStatus"]["isConnected"]:
+            raise RobotException("Robot is not connected")
+
+        status: AwakeStatus = AwakeStatus(result["currentRobotStatus"]["awakeStatus"])
         success: bool = status in [AwakeStatus.Awake]
         return success
 
     def create_mission_definition(
         self, site_id: str, mission_name: str, robot_id: str
     ) -> str:
-        mutation_string: str = """
-            mutation createMissionDefinition(
-                $site_id:String!, 
-                $mission_name:String!,
-                $robot_id:String) {
-                createMissionDefinition(
-                input: { 
-                    siteId: $site_id, 
-                    name: $mission_name,  
-                    requiredRobotConfig:{robotId : $robot_id }}
-                ) {
-                id
-            }}
-        """
-        params: dict = {
-            "site_id": site_id,
-            "mission_name": mission_name,
-            "robot_id": robot_id,
+        params: dict[str, Any] = {
+            "siteId": site_id,
+            "name": mission_name,
+            "requiredRobotConfig": {"robotId": robot_id},
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        mutation_args: dict[str, Any] = {
+            "input": {
+                "siteId": variable_definitions_graphql.siteId,
+                "name": variable_definitions_graphql.name,
+                "requiredRobotConfig": variable_definitions_graphql.requiredRobotConfig,
+            }
+        }
+        create_mission_definition_mutation = DSLMutation(
+            self.schema.Mutation.createMissionDefinition.args(**mutation_args).select(
+                self.schema.MissionDefinitionType.id
+            )
+        )
+
+        create_mission_definition_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(create_mission_definition_mutation), params
+            )
         except Exception as e:
             raise RobotException from e
 
@@ -370,111 +360,135 @@ class EnergyRoboticsApi:
         return mission_definition_id
 
     def start_mission_execution(self, mission_definition_id: str, robot_id: str) -> str:
-        mutation_string: str = """
-            mutation startMissionExecution($robot_id:ID!, $mission_definition_id:String!) {
-                startMissionExecution(
-                    input: { robotID: $robot_id, missionDefinitionID: $mission_definition_id }
-                ) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "robot_id": robot_id,
-            "mission_definition_id": mission_definition_id,
+        params: dict[str, Any] = {
+            "robotID": robot_id,
+            "missionDefinitionID": mission_definition_id,
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        mutation_args: dict[str, Any] = {
+            "input": {
+                "robotID": variable_definitions_graphql.robotID,
+                "missionDefinitionID": variable_definitions_graphql.missionDefinitionID,
+            }
+        }
+        start_mission_execution_mutation = DSLMutation(
+            self.schema.Mutation.startMissionExecution.args(**mutation_args).select(
+                self.schema.MissionExecutionType.id
+            )
+        )
+
+        start_mission_execution_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(start_mission_execution_mutation), params
+            )
         except Exception as e:
             raise RobotException from e
+
         mission_execution_id = response_dict["startMissionExecution"]["id"]
         return mission_execution_id
 
     def create_stage(self, site_id: str) -> str:
-        mutation_string: str = """
-            mutation openSiteStage($site_id:String!) {
-                openSiteStage(
-                     siteId: $site_id, 
-                ) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "site_id": site_id,
+        params: dict[str, Any] = {
+            "siteId": site_id,
         }
 
-        try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
-        except Exception as e:
-            raise RobotException from e
-        mission_execution_id = response_dict["openSiteStage"]["id"]
-        return mission_execution_id
+        variable_definitions_graphql = DSLVariableDefinitions()
 
-    def add_point_of_intrest_to_stage(self, POI_id: str, stage_id: str) -> str:
-        mutation_string: str = """
-            mutation addPointOfInterestToStage($POI_id:String!,$stage_id:String!) {
-                addPointOfInterestToStage(
-                     pointOfInterestId: $POI_id, 
-                     siteStageId: $stage_id,
-                ) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "POI_id": POI_id,
-            "stage_id": stage_id,
-        }
+        create_stage_mutation = DSLMutation(
+            self.schema.Mutation.openSiteStage.args(
+                siteId=variable_definitions_graphql.siteId,
+            ).select(self.schema.SiteStageType.id)
+        )
+
+        create_stage_mutation.variable_definitions = variable_definitions_graphql
 
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(create_stage_mutation), params
+            )
         except Exception as e:
             raise RobotException from e
-        mission_execution_id = response_dict["addPointOfInterestToStage"]["id"]
-        return mission_execution_id
+
+        return response_dict["openSiteStage"]["id"]
+
+    def add_point_of_interest_to_stage(self, POI_id: str, stage_id: str) -> str:
+        params: dict[str, Any] = {"siteStageId": stage_id, "pointOfInterestId": POI_id}
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        add_point_of_interest_to_stage_mutation = DSLMutation(
+            self.schema.Mutation.addPointOfInterestToStage.args(
+                siteStageId=variable_definitions_graphql.siteStageId,
+                pointOfInterestId=variable_definitions_graphql.pointOfInterestId,
+            ).select(self.schema.SiteStageType.id)
+        )
+
+        add_point_of_interest_to_stage_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(add_point_of_interest_to_stage_mutation), params
+            )
+        except Exception as e:
+            raise RobotException from e
+
+        return response_dict["addPointOfInterestToStage"]["id"]
 
     def commit_site_to_snapshot(self, stage_id: str) -> str:
-        mutation_string: str = """
-            mutation commitSiteChanges($stage_id:String!) {
-                commitSiteChanges(
-                     siteStageId: $stage_id,
-                ) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "stage_id": stage_id,
+        params: dict[str, Any] = {
+            "siteStageId": stage_id,
         }
 
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        commit_site_to_snapshot_mutation = DSLMutation(
+            self.schema.Mutation.commitSiteChanges.args(
+                siteStageId=variable_definitions_graphql.siteStageId,
+            ).select(self.schema.SiteSnapshotType.id)
+        )
+
+        commit_site_to_snapshot_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(commit_site_to_snapshot_mutation), params
+            )
         except Exception as e:
             raise RobotException from e
-        mission_execution_id = response_dict["commitSiteChanges"]["id"]
-        return mission_execution_id
+
+        return response_dict["commitSiteChanges"]["id"]
 
     def set_snapshot_as_head(self, snapshot_id: str, site_id: str) -> str:
-        mutation_string: str = """
-            mutation selectCurrentSiteSnapshotHead($snapshot_id:String!,$site_id:String!) {
-                selectCurrentSiteSnapshotHead(
-                     siteSnapshotId: $snapshot_id,
-                     siteId: $site_id,
-                ) {
-                    id
-                }
-            }
-        """
-        params: dict = {
-            "site_id": site_id,
-            "snapshot_id": snapshot_id,
-        }
+        params: dict[str, Any] = {"siteId": site_id, "siteSnapshotId": snapshot_id}
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        set_snapshot_as_head_mutation = DSLMutation(
+            self.schema.Mutation.selectCurrentSiteSnapshotHead.args(
+                siteId=variable_definitions_graphql.siteId,
+                siteSnapshotId=variable_definitions_graphql.siteSnapshotId,
+            ).select(self.schema.SiteSnapshotType.id)
+        )
+
+        set_snapshot_as_head_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
 
         try:
-            response_dict: dict[str, Any] = self.client.query(mutation_string, params)
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(set_snapshot_as_head_mutation), params
+            )
         except Exception as e:
             raise RobotException from e
-        mission_execution_id = response_dict["selectCurrentSiteSnapshotHead"]["id"]
-        return mission_execution_id
+
+        return response_dict["selectCurrentSiteSnapshotHead"]["id"]
