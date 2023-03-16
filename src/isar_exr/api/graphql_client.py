@@ -1,7 +1,8 @@
 from logging import Logger, getLogger
 from typing import Any, Dict
 
-from gql import Client, gql
+from gql import Client
+from gql.dsl import DSLSchema
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.exceptions import (
     TransportClosed,
@@ -9,7 +10,7 @@ from gql.transport.exceptions import (
     TransportQueryError,
     TransportServerError,
 )
-from graphql import DocumentNode, GraphQLError
+from graphql import DocumentNode, GraphQLError, build_ast_schema, parse
 
 from isar_exr.api.authentication import get_access_token
 from isar_exr.config.settings import settings
@@ -32,11 +33,19 @@ class GraphqlClient:
         auth_header = {
             "authorization": "Bearer " + token,
         }
+
+        # loading schema from file is recommended, ref https://github.com/graphql-python/gql/issues/331
+        with open(settings.PATH_TO_GRAPHQL_SCHEMA) as source:
+            document = parse(source.read())
+
+        schema = build_ast_schema(document)
+
         transport = AIOHTTPTransport(url=settings.ROBOT_API_URL, headers=auth_header)
-        self.client = Client(transport=transport, fetch_schema_from_transport=True)
+        self.client = Client(transport=transport, schema=schema)
+        self.schema = DSLSchema(self.client.schema)
 
     def query(
-        self, query_string: str, query_parameters: dict[str, Any]
+        self, query: DocumentNode, query_parameters: dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Sends a GraphQL query to the 'ROBOT_API_URL' endpoint.
@@ -48,8 +57,7 @@ class GraphqlClient:
         :raises Exception: Unknown error
         """
         try:
-            document: DocumentNode = gql(query_string)
-            response: Dict[str, Any] = self.client.execute(document, query_parameters)
+            response: Dict[str, Any] = self.client.execute(query, query_parameters)
             return response
         except GraphQLError as e:
             self.logger.error(
@@ -66,7 +74,7 @@ class GraphqlClient:
                 # The token might have expired, try again with a new token
                 self._initialize_client()
                 self._reauthenticated = True
-                self.query(query_string=query_string, query_parameters=query_parameters)
+                self.query(query=query, query_parameters=query_parameters)
         except TransportQueryError as e:
             self.logger.error(
                 f"The Energy Robotics server returned an error: {e.errors}"
