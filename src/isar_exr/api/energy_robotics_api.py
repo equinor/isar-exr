@@ -291,6 +291,39 @@ class EnergyRoboticsApi:
 
         return response_dict["addTaskToMissionDefinition"]["id"]
 
+    def remove_task_from_mission_definition(
+        self, task_id: str, mission_definition_id: str
+    ):
+        params: dict[str, Any] = {
+            "missionTaskDefinitionId": task_id,
+            "missionDefinitionId": mission_definition_id,
+        }
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+        mutation_args: dict[str, Any] = {
+            "missionTaskDefinitionId": variable_definitions_graphql.missionTaskDefinitionId,
+            "missionDefinitionId": variable_definitions_graphql.missionDefinitionId,
+        }
+
+        remove_task_from_mission_definition_mutation = DSLMutation(
+            self.client.schema.Mutation.removeTaskFromMissionDefinition.args(
+                **mutation_args
+            ).select(self.client.schema.MissionDefinitionType.id)
+        )
+
+        remove_task_from_mission_definition_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(remove_task_from_mission_definition_mutation), params
+            )
+        except Exception as e:
+            raise RobotException(e)
+
+        return response_dict["removeTaskFromMissionDefinition"]["id"]
+
     def wake_up_robot(
         self, exr_robot_id: str, timeout: int = settings.MAX_TIME_FOR_WAKEUP
     ) -> None:
