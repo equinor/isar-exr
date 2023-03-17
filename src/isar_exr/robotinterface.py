@@ -71,19 +71,21 @@ class ExrRobot(RobotInterface):
         except Exception as e:
             raise RobotException from e
 
-    def get_telemetry_publishers(self, queue: Queue, robot_id: str) -> List[Thread]:
+    def get_telemetry_publishers(
+        self, queue: Queue, isar_id: str, robot_name: str
+    ) -> List[Thread]:
         publisher_threads: List[Thread] = []
 
         pose_publisher: MqttTelemetryPublisher = MqttTelemetryPublisher(
             mqtt_queue=queue,
             telemetry_method=self._get_pose_telemetry,
-            topic=f"isar/{robot_id}/pose",
+            topic=f"isar/{isar_id}/pose",
             interval=1,
             retain=False,
         )
         pose_thread: Thread = Thread(
             target=pose_publisher.run,
-            args=[robot_id],
+            args=[isar_id, robot_name],
             name="ISAR Exr Pose Publisher",
             daemon=True,
         )
@@ -92,13 +94,13 @@ class ExrRobot(RobotInterface):
         battery_publisher: MqttTelemetryPublisher = MqttTelemetryPublisher(
             mqtt_queue=queue,
             telemetry_method=self._get_battery_telemetry,
-            topic=f"isar/{robot_id}/battery",
+            topic=f"isar/{isar_id}/battery",
             interval=5,
             retain=False,
         )
         battery_thread: Thread = Thread(
             target=battery_publisher.run,
-            args=[robot_id],
+            args=[isar_id, robot_name],
             name="ISAR Exr Battery Publisher",
             daemon=True,
         )
