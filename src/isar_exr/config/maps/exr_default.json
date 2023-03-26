@@ -1,0 +1,77 @@
+  {
+    "name": "klab_turtlebot",
+    "map_from": {
+      "name": "exr_default_robot",
+      "reference_positions": {
+        "positions": [
+        {
+          "x": 1,
+          "y": 1,
+          "z": 0,
+          "frame": {
+            "name": "robot"
+          }
+        },
+        {
+          "x": -2.677,
+          "y": 2.299,
+          "z": 0,
+          "frame": {
+            "name": "robot"
+          }
+        },
+        {
+          "x": 2,
+          "y": 3,
+          "z": 4,
+          "frame": {
+            "name": "robot"
+          }
+        }
+        ],
+        "frame": {
+          "name": "robot"
+        }
+      },
+      "frame": {
+        "name": "robot"
+      }
+    },
+    "map_to": {
+      "name": "exr_default_asset",
+      "reference_positions": {
+        "positions": [
+        {
+          "x": 1,
+          "y": 1,
+          "z": 0,
+          "frame": {
+            "name": "asset"
+          }
+        },
+        {
+          "x": -2.677,
+          "y": 2.299,
+          "z": 0,
+          "frame": {
+            "name": "asset"
+          }
+        },
+        {
+          "x": 2,
+          "y": 3,
+          "z": 4,
+          "frame": {
+            "name": "asset"
+          }
+        }
+        ],
+        "frame": {
+          "name": "asset"
+        }
+      },
+      "frame": {
+        "name": "asset"
+      }
+    }
+  }

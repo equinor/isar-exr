@@ -1,6 +1,6 @@
-from isar_exr.robotinterface import ExrRobot
+from isar_exr.robotinterface import Robot
 
-robot: ExrRobot = ExrRobot()
+robot: Robot = Robot()
 
 # Test functions here:
 robot.stop()

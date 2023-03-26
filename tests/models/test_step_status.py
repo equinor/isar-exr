@@ -14,7 +14,7 @@ def test_to_step_status():
     mocked_response = "IN_PROGRESS"
     expected_status: StepStatus = StepStatus.InProgress
 
-    status = ExrMissionStatus(mocked_response).to_step_status()
+    status = ExrMissionStatus(mocked_response).to_mission_status()
     assert expected_status == status
 
 
@@ -33,7 +33,7 @@ def test_to_step_status():
 def test_get_step_status_success():
     expected_status: StepStatus = StepStatus.InProgress
     api = EnergyRoboticsApi()
-    status = api.get_step_status(settings.ROBOT_EXR_ID)
+    status = api.get_mission_status(settings.ROBOT_EXR_ID)
 
     assert expected_status == status
 
@@ -48,6 +48,6 @@ def test_get_step_status_success():
 def test_get_step_status_error_mission_is_not_running():
     api = EnergyRoboticsApi()
     with pytest.raises(NoMissionRunningException):
-        api.get_step_status(settings.ROBOT_EXR_ID)
+        api.get_mission_status(settings.ROBOT_EXR_ID)
 
     api.is_mission_running.assert_called_once()

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from robot_interface.models.mission.status import StepStatus
+from robot_interface.models.mission.status import MissionStatus
 
 
 class ExrMissionStatus(str, Enum):
@@ -14,16 +14,16 @@ class ExrMissionStatus(str, Enum):
     Paused: str = "PAUSED"
     Completed: str = "COMPLETED"
 
-    def to_step_status(self) -> StepStatus:
+    def to_mission_status(self) -> MissionStatus:
         return {
-            ExrMissionStatus.StartRequested: StepStatus.NotStarted,
-            ExrMissionStatus.PauseRequested: StepStatus.InProgress,
+            ExrMissionStatus.StartRequested: MissionStatus.NotStarted,
+            ExrMissionStatus.PauseRequested: MissionStatus.InProgress,
             # Current implementation paused is cancelled
-            ExrMissionStatus.ResumeRequested: StepStatus.Cancelled,
-            ExrMissionStatus.Rejected: StepStatus.Failed,
-            ExrMissionStatus.WakingUp: StepStatus.NotStarted,
-            ExrMissionStatus.Starting: StepStatus.NotStarted,
-            ExrMissionStatus.InProgress: StepStatus.InProgress,
-            ExrMissionStatus.Paused: StepStatus.Cancelled,
-            ExrMissionStatus.Completed: StepStatus.Successful,
+            ExrMissionStatus.ResumeRequested: MissionStatus.Cancelled,
+            ExrMissionStatus.Rejected: MissionStatus.Failed,
+            ExrMissionStatus.WakingUp: MissionStatus.NotStarted,
+            ExrMissionStatus.Starting: MissionStatus.NotStarted,
+            ExrMissionStatus.InProgress: MissionStatus.InProgress,
+            ExrMissionStatus.Paused: MissionStatus.Cancelled,
+            ExrMissionStatus.Completed: MissionStatus.Successful,
         }[self]

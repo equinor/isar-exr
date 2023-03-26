@@ -1,33 +1,22 @@
-from datetime import datetime
 import json
+from datetime import datetime
 from time import sleep
 from typing import Any, Dict
-from gql import gql
-from isar_exr.api.models.models import (
-    Point3DInput,
-    Pose3DStampedInput,
-    QuaternionInput,
-    UpsertPointOfInterestInput,
-)
 
+from gql.dsl import DSLMutation, DSLQuery, DSLVariableDefinitions, dsl_gql
 from robot_interface.models.exceptions import RobotException
-from robot_interface.models.mission.status import StepStatus
+from robot_interface.models.mission.status import MissionStatus
 
 from isar_exr.api.graphql_client import GraphqlClient
+from isar_exr.api.models.enums import AwakeStatus
+from isar_exr.api.models.models import (
+    AddPointOfInterestInput,
+    Pose3DStampedInput,
+    UpsertPointOfInterestInput,
+)
+from isar_exr.config.settings import settings
 from isar_exr.models.exceptions import NoMissionRunningException
 from isar_exr.models.step_status import ExrMissionStatus
-from isar_exr.api.models.enums import AwakeStatus
-from isar_exr.api.models.models import AddPointOfInterestInput
-
-from isar_exr.config.settings import settings
-from isar_exr.api.models.models import (
-    Point3DInput,
-    QuaternionInput,
-    Pose3DInput,
-    PointOfInterestTypeEnum,
-    PointOfInterestActionPhotoInput,
-)
-from gql.dsl import DSLVariableDefinitions, DSLMutation, DSLQuery, dsl_gql
 
 
 def to_dict(obj):
@@ -39,7 +28,7 @@ class EnergyRoboticsApi:
         self.client = GraphqlClient()
         self.schema = self.client.schema
 
-    def get_step_status(self, exr_robot_id: str) -> StepStatus:
+    def get_mission_status(self, exr_robot_id: str) -> MissionStatus:
         variable_definitions_graphql = DSLVariableDefinitions()
 
         current_mission_execution_query = DSLQuery(
@@ -56,7 +45,8 @@ class EnergyRoboticsApi:
 
         if not self.is_mission_running(exr_robot_id):
             raise NoMissionRunningException(
-                f"Cannot get EXR mission status - No EXR mission is running for robot with id {exr_robot_id}"
+                f"Cannot get EXR mission status - No EXR mission is running for robot "
+                f"with id {exr_robot_id}"
             )
 
         response_dict: dict[str, Any] = self.client.query(
@@ -65,7 +55,7 @@ class EnergyRoboticsApi:
         step_status = ExrMissionStatus(
             response_dict["currentMissionExecution"]["status"]
         )
-        return step_status.to_step_status()
+        return step_status.to_mission_status()
 
     def is_mission_running(self, exr_robot_id: str) -> bool:
         variable_definitions_graphql = DSLVariableDefinitions()
