@@ -13,10 +13,13 @@ from isar_exr.config.settings import settings
 from isar_exr.api.models.models import (
     AddPointOfInterestInput,
     Point3DInput,
+    PointOfInterestProducerInput,
+    Pose3DStampedInput,
     QuaternionInput,
     Pose3DInput,
     PointOfInterestTypeEnum,
     PointOfInterestActionPhotoInput,
+    UpsertPointOfInterestInput,
 )
 
 
@@ -81,7 +84,7 @@ class TestCreatePointOfinterest:
         assert return_value == self.expected_return_id
 
     @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
-    def test_api_return_exeption(self):
+    def test_api_return_exception(self):
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         position: Point3DInput = Point3DInput(x=0, y=0, z=0)
         orientation: QuaternionInput = QuaternionInput(x=0, y=0, z=0, w=0)
@@ -99,6 +102,77 @@ class TestCreatePointOfinterest:
         )
         with pytest.raises(expected_exception=RobotException):
             api.create_point_of_interest(point_of_interest_input=poi)
+
+
+@mock.patch(
+    "isar_exr.api.graphql_client.get_access_token",
+    mock.Mock(return_value="test_token"),
+)
+class TestUpsertPointOfinterest:
+    expected_return_id = "point_of_interest_type_id"
+    api_point_of_interest_response: Dict[str, Any] = {
+        "upsertPointOfInterest": {"id": expected_return_id}
+    }
+
+    @mock.patch.object(
+        Client, "execute", mock.Mock(return_value=api_point_of_interest_response)
+    )
+    def test_succeeds_if_id_returned(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        position: Point3DInput = Point3DInput(x=0, y=0, z=0)
+        orientation: QuaternionInput = QuaternionInput(x=0, y=0, z=0, w=0)
+        stamped_pose: Pose3DStampedInput = Pose3DStampedInput(
+            timestamp=0,
+            frameID="mock_frame",
+            position=position,
+            orientation=orientation,
+        )
+        point_of_interest_producer: PointOfInterestProducerInput = (
+            PointOfInterestProducerInput(robotNumber=1)
+        )
+        point_of_interest_input: UpsertPointOfInterestInput = (
+            UpsertPointOfInterestInput(
+                key="mock_key",
+                name="mock_name",
+                siteId="mock_site",
+                pose=stamped_pose,
+                producer=point_of_interest_producer,
+                inspectionParameters={"dummy_key": "dummy_value"},
+            )
+        )
+        return_value = api.upsert_point_of_interest(
+            point_of_interest_input=point_of_interest_input
+        )
+        assert return_value == self.expected_return_id
+
+    @mock.patch.object(Client, "execute", mock.Mock(side_effect=Exception))
+    def test_api_returns_exception(self):
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        position: Point3DInput = Point3DInput(x=0, y=0, z=0)
+        orientation: QuaternionInput = QuaternionInput(x=0, y=0, z=0, w=0)
+        stamped_pose: Pose3DStampedInput = Pose3DStampedInput(
+            timestamp=0,
+            frameID="mock_frame",
+            position=position,
+            orientation=orientation,
+        )
+        point_of_interest_producer: PointOfInterestProducerInput = (
+            PointOfInterestProducerInput(robotNumber=1)
+        )
+        point_of_interest_input: UpsertPointOfInterestInput = (
+            UpsertPointOfInterestInput(
+                key="mock_key",
+                name="mock_name",
+                siteId="mock_site",
+                pose=stamped_pose,
+                producer=point_of_interest_producer,
+                inspectionParameters={"dummy_key": "dummy_value"},
+            )
+        )
+        with pytest.raises(expected_exception=RobotException):
+            api.upsert_point_of_interest(
+                point_of_interest_input=point_of_interest_input
+            )
 
 
 @mock.patch(
