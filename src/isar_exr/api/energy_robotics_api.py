@@ -3,7 +3,12 @@ import json
 from time import sleep
 from typing import Any, Dict
 from gql import gql
-from isar_exr.api.models.models import Point3DInput, Pose3DStampedInput, QuaternionInput
+from isar_exr.api.models.models import (
+    Point3DInput,
+    Pose3DStampedInput,
+    QuaternionInput,
+    UpsertPointOfInterestInput,
+)
 
 from robot_interface.models.exceptions import RobotException
 from robot_interface.models.mission.status import StepStatus
@@ -141,6 +146,40 @@ class EnergyRoboticsApi:
             raise RobotException(e)
 
         return response_dict["addPointOfInterest"]["id"]
+
+    def upsert_point_of_interest(
+        self, point_of_interest_input: UpsertPointOfInterestInput
+    ) -> str:
+        upsert_point_of_interest_input: Dict[str, Any] = to_dict(
+            point_of_interest_input
+        )
+        upsert_point_of_interest_input["inspectionParameters"] = json.dumps(
+            upsert_point_of_interest_input["inspectionParameters"]
+        )
+        params: dict[str, Any] = {
+            "UpsertPointOfInterestInput": upsert_point_of_interest_input,
+        }
+
+        variable_definitions_graphql = DSLVariableDefinitions()
+
+        upsert_point_of_interest_mutation = DSLMutation(
+            self.schema.Mutation.upsertPointOfInterest.args(
+                input=variable_definitions_graphql.UpsertPointOfInterestInput
+            ).select(self.schema.PointOfInterestType.id)
+        )
+
+        upsert_point_of_interest_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(upsert_point_of_interest_mutation), params
+            )
+        except Exception as e:
+            raise RobotException(e)
+
+        return response_dict["upsertPointOfInterest"]["id"]
 
     def create_dock_robot_task_definition(
         self, site_id: str, task_name: str, docking_station_id: str
