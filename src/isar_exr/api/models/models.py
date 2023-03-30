@@ -53,3 +53,34 @@ class AddPointOfInterestInput(BaseModel):
     pose: Pose3DInput
     photoAction: Optional[PointOfInterestActionPhotoInput]
     videoAction: Optional[PointOfInterestActionVideoInput]
+
+
+class RobotTypeEnum(str, Enum):
+    SPOT: str = "SPOT"
+    EXR2: str = "EXR2"
+    ROVER: str = "ROVER"
+    DJI_DRONE: str = "DJI_DRONE"
+
+
+class PointOfInterestProducerTypeEnum(str, Enum):
+    ROBOT_TEACHING: str = "ROBOT_TEACHING"
+    VISUAL_MARKER: str = "VISUAL_MARKER"
+    MANUAL_IMPORT: str = "MANUAL_IMPORT"
+
+
+class PointOfInterestProducerInput(BaseModel):
+    type: PointOfInterestProducerTypeEnum = Field(
+        default=PointOfInterestProducerTypeEnum.MANUAL_IMPORT
+    )
+    robotNumber: int
+    robotType: RobotTypeEnum = Field(default=RobotTypeEnum.EXR2)
+
+
+class UpsertPointOfInterestInput(BaseModel):
+    key: str
+    name: str
+    type: PointOfInterestTypeEnum = Field(default=PointOfInterestTypeEnum.GENERIC)
+    siteId: str
+    pose: Pose3DStampedInput
+    producer: PointOfInterestProducerInput
+    inspectionParameters: dict
