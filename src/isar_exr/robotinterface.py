@@ -8,16 +8,16 @@ from alitra import Frame, Orientation, Pose, Position
 from robot_interface.models.exceptions import RobotException
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
-from robot_interface.models.mission import (
+from robot_interface.models.mission.step import (
     InspectionStep,
     Step,
-    StepStatus,
     TakeImage,
     TakeThermalImage,
     TakeThermalVideo,
     TakeVideo,
 )
-from robot_interface.models.mission.status import RobotStatus
+from robot_interface.models.mission.status import RobotStatus, StepStatus
+
 from robot_interface.robot_interface import RobotInterface
 from robot_interface.telemetry.mqtt_client import MqttTelemetryPublisher
 
