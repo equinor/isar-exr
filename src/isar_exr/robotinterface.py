@@ -8,6 +8,8 @@ from alitra import Frame, Orientation, Pose, Position
 from robot_interface.models.exceptions import RobotException
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
+from robot_interface.models.mission.mission import Mission
+from robot_interface.models.mission.status import MissionStatus, RobotStatus, StepStatus
 from robot_interface.models.mission.step import (
     InspectionStep,
     Step,
@@ -16,8 +18,6 @@ from robot_interface.models.mission.step import (
     TakeThermalVideo,
     TakeVideo,
 )
-from robot_interface.models.mission.status import RobotStatus, StepStatus
-
 from robot_interface.robot_interface import RobotInterface
 from robot_interface.telemetry.mqtt_client import MqttTelemetryPublisher
 
@@ -39,6 +39,12 @@ class ExrRobot(RobotInterface):
         self.pose: Pose = Pose(
             position=self.position, orientation=self.orientation, frame=Frame("asset")
         )
+
+    def initiate_mission(self, mission: Mission) -> None:
+        raise NotImplementedError
+
+    def mission_status(self) -> MissionStatus:
+        raise NotImplementedError
 
     def initiate_step(self, step: Step) -> None:
         raise NotImplementedError
