@@ -256,7 +256,7 @@ class Robot(RobotInterface):
 
         poi_producer: PointOfInterestProducerInput = PointOfInterestProducerInput(
             type=PointOfInterestProducerTypeEnum.MANUAL_IMPORT,
-            robot_number=1,
+            robotNumber=1,
             robotType=RobotTypeEnum.EXR2,
         )
         poi_input: UpsertPointOfInterestInput = UpsertPointOfInterestInput(
