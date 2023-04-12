@@ -57,7 +57,7 @@ from isar_exr.models.exceptions import NoMissionRunningException
 
 
 class Robot(RobotInterface):
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger: Logger = logging.getLogger(Robot.__name__)
         self.api: EnergyRoboticsApi = EnergyRoboticsApi()
         self.exr_robot_id: str = settings.ROBOT_EXR_ID
@@ -283,7 +283,7 @@ class Robot(RobotInterface):
         pose: Pose = self.transform.transform_pose(
             pose=step.pose, from_=step.pose.frame, to_=Frame("asset")
         )
-        pose: Pose3DStampedInput = Pose3DStampedInput(
+        pose_3d_stamped: Pose3DStampedInput = Pose3DStampedInput(
             timestamp=time.time(),
             frameID="don't know",
             position=Point3DInput(
@@ -299,7 +299,7 @@ class Robot(RobotInterface):
         waypoint_id: str = self.api.create_waypoint_task_definition(
             site_id=settings.ROBOT_EXR_SITE_ID,
             task_name=step.id,
-            pose_3D_stamped_input=pose,
+            pose_3D_stamped_input=pose_3d_stamped,
         )
         add_task_id: str = self.api.add_task_to_mission_definition(
             task_id=waypoint_id,
