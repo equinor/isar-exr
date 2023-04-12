@@ -3,7 +3,7 @@ from datetime import datetime
 from time import sleep
 from typing import Any, Dict
 
-from gql.dsl import DSLMutation, DSLQuery, DSLVariableDefinitions, dsl_gql
+from gql.dsl import DSLMutation, DSLQuery, DSLSchema, DSLVariableDefinitions, dsl_gql
 from robot_interface.models.exceptions import RobotException
 from robot_interface.models.mission.status import MissionStatus
 
@@ -24,14 +24,14 @@ def to_dict(obj):
 
 
 class EnergyRoboticsApi:
-    def __init__(self):
-        self.client = GraphqlClient()
-        self.schema = self.client.schema
+    def __init__(self) -> None:
+        self.client: GraphqlClient = GraphqlClient()
+        self.schema: DSLSchema = self.client.schema
 
     def get_mission_status(self, exr_robot_id: str) -> MissionStatus:
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        current_mission_execution_query = DSLQuery(
+        current_mission_execution_query: DSLQuery = DSLQuery(
             self.schema.Query.currentMissionExecution.args(
                 robotID=variable_definitions_graphql.robotID
             ).select(self.schema.MissionExecutionType.status)
@@ -58,9 +58,9 @@ class EnergyRoboticsApi:
         return step_status.to_mission_status()
 
     def is_mission_running(self, exr_robot_id: str) -> bool:
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        is_mission_running_query = DSLQuery(
+        is_mission_running_query: DSLQuery = DSLQuery(
             self.schema.Query.isMissionRunning.args(
                 robotID=variable_definitions_graphql.robotID
             )
@@ -78,9 +78,9 @@ class EnergyRoboticsApi:
     def pause_current_mission(self, exr_robot_id: str) -> None:
         params: dict = {"robotID": exr_robot_id}
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        pause_current_mission_mutation = DSLMutation(
+        pause_current_mission_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.pauseMissionExecution.args(
                 robotID=variable_definitions_graphql.robotID
             ).select(
@@ -116,9 +116,9 @@ class EnergyRoboticsApi:
             "AddPointOfInterestInput": to_dict(point_of_interest_input),
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        create_point_of_interest_mutation = DSLMutation(
+        create_point_of_interest_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.addPointOfInterest.args(
                 input=variable_definitions_graphql.AddPointOfInterestInput
             ).select(self.schema.PointOfInterestType.id)
@@ -150,9 +150,9 @@ class EnergyRoboticsApi:
             "UpsertPointOfInterestInput": upsert_point_of_interest_input,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        upsert_point_of_interest_mutation = DSLMutation(
+        upsert_point_of_interest_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.upsertPointOfInterest.args(
                 input=variable_definitions_graphql.UpsertPointOfInterestInput
             ).select(self.schema.PointOfInterestType.id)
@@ -180,7 +180,7 @@ class EnergyRoboticsApi:
             "dockingStationId": docking_station_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
         mutation_args: dict[str, Any] = {
             "input": {
@@ -190,7 +190,7 @@ class EnergyRoboticsApi:
             }
         }
 
-        create_dock_robot_task_definition_mutation = DSLMutation(
+        create_dock_robot_task_definition_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.createDockRobotTaskDefinition.args(
                 **mutation_args
             ).select(self.schema.DockRobotTaskDefinitionType.id)
@@ -218,7 +218,7 @@ class EnergyRoboticsApi:
             "poiId": point_of_interest_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
         mutation_args: dict[str, Any] = {
             "input": {
@@ -228,7 +228,7 @@ class EnergyRoboticsApi:
             }
         }
 
-        create_poi_inspection_task_definition_mutation = DSLMutation(
+        create_poi_inspection_task_definition_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.createPoiInspectionTaskDefinition.args(
                 **mutation_args
             ).select(self.schema.PoiInspectionTaskDefinitionType.id)
@@ -256,7 +256,7 @@ class EnergyRoboticsApi:
             "waypoint": to_dict(pose_3D_stamped_input),
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
         mutation_args: dict[str, Any] = {
             "input": {
@@ -265,7 +265,7 @@ class EnergyRoboticsApi:
                 "waypoint": variable_definitions_graphql.waypoint,
             }
         }
-        create_waypoint_task_definition_mutation = DSLMutation(
+        create_waypoint_task_definition_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.createWaypointTaskDefinition.args(
                 **mutation_args
             ).select(self.schema.WaypointTaskDefinitionType.id)
@@ -292,7 +292,7 @@ class EnergyRoboticsApi:
             "missionDefinitionId": mission_definition_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
         mutation_args: dict[str, Any] = {
             "missionTaskDefinitionId": variable_definitions_graphql.missionTaskDefinitionId,
             "missionDefinitionId": variable_definitions_graphql.missionDefinitionId,
@@ -301,7 +301,7 @@ class EnergyRoboticsApi:
             mutation_args["index"] = variable_definitions_graphql.index
             params["index"] = index
 
-        add_task_to_mission_definition_mutation = DSLMutation(
+        add_task_to_mission_definition_mutation: DSLMutation = DSLMutation(
             self.client.schema.Mutation.addTaskToMissionDefinition.args(
                 **mutation_args
             ).select(self.client.schema.MissionDefinitionType.id)
@@ -328,13 +328,13 @@ class EnergyRoboticsApi:
             "missionDefinitionId": mission_definition_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
         mutation_args: dict[str, Any] = {
             "missionTaskDefinitionId": variable_definitions_graphql.missionTaskDefinitionId,
             "missionDefinitionId": variable_definitions_graphql.missionDefinitionId,
         }
 
-        remove_task_from_mission_definition_mutation = DSLMutation(
+        remove_task_from_mission_definition_mutation: DSLMutation = DSLMutation(
             self.client.schema.Mutation.removeTaskFromMissionDefinition.args(
                 **mutation_args
             ).select(self.client.schema.MissionDefinitionType.id)
@@ -358,9 +358,9 @@ class EnergyRoboticsApi:
     ) -> None:
         params: dict = {"robotID": exr_robot_id}
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        wake_up_robot_mutation = DSLMutation(
+        wake_up_robot_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.executeAwakeCommand.args(
                 targetState=AwakeStatus.Awake,
                 robotID=variable_definitions_graphql.robotID,
@@ -392,9 +392,9 @@ class EnergyRoboticsApi:
     def is_robot_awake(self, exr_robot_id: str) -> bool:
         params: dict = {"robotID": exr_robot_id}
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        check_if_awake_query = DSLQuery(
+        check_if_awake_query: DSLQuery = DSLQuery(
             self.schema.Query.currentRobotStatus.args(
                 robotID=variable_definitions_graphql.robotID
             ).select(
@@ -428,7 +428,7 @@ class EnergyRoboticsApi:
             "requiredRobotConfig": {"robotId": robot_id},
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
         mutation_args: dict[str, Any] = {
             "input": {
@@ -437,7 +437,7 @@ class EnergyRoboticsApi:
                 "requiredRobotConfig": variable_definitions_graphql.requiredRobotConfig,
             }
         }
-        create_mission_definition_mutation = DSLMutation(
+        create_mission_definition_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.createMissionDefinition.args(**mutation_args).select(
                 self.schema.MissionDefinitionType.id
             )
@@ -463,7 +463,7 @@ class EnergyRoboticsApi:
             "missionDefinitionID": mission_definition_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
         mutation_args: dict[str, Any] = {
             "input": {
@@ -471,7 +471,7 @@ class EnergyRoboticsApi:
                 "missionDefinitionID": variable_definitions_graphql.missionDefinitionID,
             }
         }
-        start_mission_execution_mutation = DSLMutation(
+        start_mission_execution_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.startMissionExecution.args(**mutation_args).select(
                 self.schema.MissionExecutionType.id
             )
@@ -496,9 +496,9 @@ class EnergyRoboticsApi:
             "siteId": site_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        create_stage_mutation = DSLMutation(
+        create_stage_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.openSiteStage.args(
                 siteId=variable_definitions_graphql.siteId,
             ).select(self.schema.SiteStageType.id)
@@ -518,9 +518,9 @@ class EnergyRoboticsApi:
     def add_point_of_interest_to_stage(self, POI_id: str, stage_id: str) -> str:
         params: dict[str, Any] = {"siteStageId": stage_id, "pointOfInterestId": POI_id}
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        add_point_of_interest_to_stage_mutation = DSLMutation(
+        add_point_of_interest_to_stage_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.addPointOfInterestToStage.args(
                 siteStageId=variable_definitions_graphql.siteStageId,
                 pointOfInterestId=variable_definitions_graphql.pointOfInterestId,
@@ -545,9 +545,9 @@ class EnergyRoboticsApi:
             "siteStageId": stage_id,
         }
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        commit_site_to_snapshot_mutation = DSLMutation(
+        commit_site_to_snapshot_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.commitSiteChanges.args(
                 siteStageId=variable_definitions_graphql.siteStageId,
             ).select(self.schema.SiteSnapshotType.id)
@@ -569,9 +569,9 @@ class EnergyRoboticsApi:
     def set_snapshot_as_head(self, snapshot_id: str, site_id: str) -> str:
         params: dict[str, Any] = {"siteId": site_id, "siteSnapshotId": snapshot_id}
 
-        variable_definitions_graphql = DSLVariableDefinitions()
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
-        set_snapshot_as_head_mutation = DSLMutation(
+        set_snapshot_as_head_mutation: DSLMutation = DSLMutation(
             self.schema.Mutation.selectCurrentSiteSnapshotHead.args(
                 siteId=variable_definitions_graphql.siteId,
                 siteSnapshotId=variable_definitions_graphql.siteSnapshotId,

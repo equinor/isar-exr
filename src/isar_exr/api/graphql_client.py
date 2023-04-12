@@ -10,14 +10,14 @@ from gql.transport.exceptions import (
     TransportQueryError,
     TransportServerError,
 )
-from graphql import DocumentNode, GraphQLError, build_ast_schema, parse
+from graphql import DocumentNode, GraphQLError, GraphQLSchema, build_ast_schema, parse
 
 from isar_exr.api.authentication import get_access_token
 from isar_exr.config.settings import settings
 
 
 class GraphqlClient:
-    def __init__(self):
+    def __init__(self) -> None:
         # Parameter used for retrying query with new authentication
         # in case of expired token
         self._reauthenticated: bool = False
@@ -30,19 +30,22 @@ class GraphqlClient:
         except Exception as e:
             self.logger.critical(f"CRITICAL - Error getting access token: \n{e}")
             raise
-        auth_header = {
+        auth_header: dict = {
             "authorization": "Bearer " + token,
         }
 
-        # loading schema from file is recommended, ref https://github.com/graphql-python/gql/issues/331
+        # Loading schema from file is recommended,
+        # ref https://github.com/graphql-python/gql/issues/331
         with open(settings.PATH_TO_GRAPHQL_SCHEMA) as source:
             document = parse(source.read())
 
-        schema = build_ast_schema(document)
+        schema: GraphQLSchema = build_ast_schema(document)
 
-        transport = AIOHTTPTransport(url=settings.ROBOT_API_URL, headers=auth_header)
-        self.client = Client(transport=transport, schema=schema)
-        self.schema = DSLSchema(self.client.schema)
+        transport: AIOHTTPTransport = AIOHTTPTransport(
+            url=settings.ROBOT_API_URL, headers=auth_header
+        )
+        self.client: Client = Client(transport=transport, schema=schema)
+        self.schema: DSLSchema = DSLSchema(self.client.schema)
 
     def query(
         self, query: DocumentNode, query_parameters: dict[str, Any]
