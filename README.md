@@ -26,6 +26,7 @@ Set the following environment variables (alternatively in a .env file like `.env
 ```bash
 export EXR_ROBOT_API_USERNAME = "email-here"
 export EXR_ROBOT_API_PASSWORD = "api-key-here"
+export EXR_API_URL = "ADD URL HERE"
 ```
 
 For development, it is recommended to install the lastest version of ISAR from [GitHub](https://github.com/equinor/isar) locally.
