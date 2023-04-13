@@ -491,6 +491,30 @@ class EnergyRoboticsApi:
         mission_execution_id = response_dict["startMissionExecution"]["id"]
         return mission_execution_id
 
+    def discard_stage(self, stage_id: str) -> str:
+        params: dict[str, Any] = {
+            "siteStageId": stage_id,
+        }
+
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        discard_stage_mutation: DSLMutation = DSLMutation(
+            self.schema.Mutation.discardSiteStage.args(
+                siteStageId=variable_definitions_graphql.siteStageId,
+            ).select(self.schema.SiteStageType.id)
+        )
+
+        discard_stage_mutation.variable_definitions = variable_definitions_graphql
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(discard_stage_mutation), params
+            )
+        except Exception as e:
+            raise RobotException from e
+
+        return response_dict["discardSiteStage"]["id"]
+
     def create_stage(self, site_id: str) -> str:
         params: dict[str, Any] = {
             "siteId": site_id,
