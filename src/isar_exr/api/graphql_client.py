@@ -36,7 +36,7 @@ class GraphqlClient:
 
         # Loading schema from file is recommended,
         # ref https://github.com/graphql-python/gql/issues/331
-        with open(settings.PATH_TO_GRAPHQL_SCHEMA) as source:
+        with open(settings.PATH_TO_GRAPHQL_SCHEMA, encoding="utf-8") as source:
             document = parse(source.read())
 
         schema: GraphQLSchema = build_ast_schema(document)
