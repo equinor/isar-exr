@@ -427,6 +427,10 @@ class TestStageAndSnapshot:
     api_execute_response_crate_stage: Dict[str, Any] = {
         "openSiteStage": {"id": create_stage_expected_return_id}
     }
+    discard_stage_expected_return_id: str = "stage_id"
+    api_execute_response_discard_stage: Dict[str, Any] = {
+        "discardSiteStage": {"id": discard_stage_expected_return_id}
+    }
     add_poi_to_stage_expected_return_id: str = "stage_id"
     api_execute_response_add_poi_to_stage: Dict[str, Any] = {
         "addPointOfInterestToStage": {"id": add_poi_to_stage_expected_return_id}
@@ -451,6 +455,14 @@ class TestStageAndSnapshot:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         return_value: str = api.create_stage(site_id="mock_site_id")
         assert return_value == self.create_stage_expected_return_id
+
+    @mock.patch.object(
+        Client, "execute", Mock(return_value=api_execute_response_discard_stage)
+    )
+    def test_discard_stage_succeeds_if_id_returned(self) -> None:
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value: str = api.discard_stage(stage_id="stage_id")
+        assert return_value == self.discard_stage_expected_return_id
 
     @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
     def test_create_stage_api_return_exception(self) -> None:
