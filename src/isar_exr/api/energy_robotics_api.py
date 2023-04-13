@@ -590,3 +590,22 @@ class EnergyRoboticsApi:
             raise RobotException from e
 
         return response_dict["selectCurrentSiteSnapshotHead"]["id"]
+
+    def get_current_site_stage(self, site_id: str) -> str:
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        current_site_stage_query: DSLQuery = DSLQuery(
+            self.schema.Query.currentSiteStage.args(
+                siteId=variable_definitions_graphql.siteId
+            ).select(self.schema.SiteStageType.id)
+        )
+
+        current_site_stage_query.variable_definitions = variable_definitions_graphql
+
+        params: dict = {"siteId": site_id}
+
+        response_dict: dict[str, Any] = self.client.query(
+            dsl_gql(current_site_stage_query), params
+        )
+
+        return response_dict["currentSiteStage"]["id"]
