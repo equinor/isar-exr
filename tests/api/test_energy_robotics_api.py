@@ -439,6 +439,10 @@ class TestStageAndSnapshot:
     api_execute_response_set_head: Dict[str, Any] = {
         "selectCurrentSiteSnapshotHead": {"id": set_head_expected_return_id}
     }
+    current_site_stage_expected_return_id: str = "snapshot_id"
+    api_execute_response_site_stage: Dict[str, Any] = {
+        "currentSiteStage": {"id": current_site_stage_expected_return_id}
+    }
 
     @mock.patch.object(
         Client, "execute", Mock(return_value=api_execute_response_crate_stage)
@@ -503,6 +507,14 @@ class TestStageAndSnapshot:
             api.set_snapshot_as_head(
                 snapshot_id="mock_snapshot_id", site_id="mock_site_id"
             )
+
+    @mock.patch.object(
+        Client, "execute", Mock(return_value=api_execute_response_site_stage)
+    )
+    def test_current_site_stage(self) -> None:
+        api: EnergyRoboticsApi = EnergyRoboticsApi()
+        return_value: str = api.get_current_site_stage(site_id="mock_site_id")
+        assert return_value == self.current_site_stage_expected_return_id
 
 
 @mock.patch(
