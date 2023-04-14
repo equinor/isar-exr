@@ -85,6 +85,9 @@ class Robot(RobotInterface):
         )
 
     def initiate_mission(self, mission: Mission) -> None:
+        curent_stage_id = self.api.get_current_site_stage(settings.ROBOT_EXR_SITE_ID)
+        if curent_stage_id is not None:
+            self.api.discard_stage(stage_id=curent_stage_id)
         stage_id: str = self.api.create_stage(site_id=settings.ROBOT_EXR_SITE_ID)
         poi_ids: List[str] = []
         for task in mission.tasks:
