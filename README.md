@@ -2,14 +2,14 @@
 
 Integration and Supervisory control of Autonomous ground Robots - exr
 
-exr is an abbrivation of ExRobotics, which has made the robot [ExRobotics2(exr2)](https://exrobotics.global/robots/exr-2) which this package is intended for.
+The abbreviation "exr" stands for ExRobotics, the maker of the [ExR-2](https://exrobotics.global/robots/exr-2) robot, which this package is intended for.
 
-Technically speaking, this package integrates toward [EnergyRobotics'](https://www.energy-robotics.com/) API, which again communicates with the exr2 robot.
+Technically speaking, this package integrates to the API of [Energy Robotics](https://www.energy-robotics.com/), the provider of a cloud-based platform to control fleets of robots from multiple vendors including ExRobotics.
 
 ## Authentication
 
-You need to have a user in the EXR portal, and create an api key.  
-These are the variables used for authentication.
+You need to have a user account on the Energy Robotics login portal which lets you create an API key.
+For authentication the email address of this user account is used as user name and the API key as password.
 
 ## Installation
 
