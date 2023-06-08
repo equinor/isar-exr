@@ -99,7 +99,7 @@ class Robot(RobotInterface):
                     poi_ids.append(poi_id)
 
         snapshot_id: str = self.api.commit_site_to_snapshot(stage_id=stage_id)
-        _ = self.api.set_snapshot_as_head(
+        self.api.set_snapshot_as_head(
             snapshot_id=snapshot_id, site_id=settings.ROBOT_EXR_SITE_ID
         )
 
@@ -112,33 +112,22 @@ class Robot(RobotInterface):
         for task in mission.tasks:
             for step in task.steps:
                 if isinstance(step, DriveToPose):
-                    _ = self._add_waypoint_task_to_mission(
+                    self._add_waypoint_task_to_mission(
                         mission_definition_id=mission_definition_id, step=step
                     )
                 if isinstance(step, InspectionStep):
-                    poi_task_id: str = (
-                        self.api.create_point_of_interest_inspection_task_definition(
-                            site_id=settings.ROBOT_EXR_SITE_ID,
-                            task_name=step.id,
-                            point_of_interest_id=poi_ids.pop(0),
-                        )
-                    )
-                    _ = self.api.add_task_to_mission_definition(
-                        task_id=poi_task_id,
+                    self._add_point_of_interest_inspection_task_to_mission(
+                        task_name=step.id,
+                        point_of_interest_id=poi_ids.pop(0),
                         mission_definition_id=mission_definition_id,
                     )
 
-        dock_task_id: str = self.api.create_dock_robot_task_definition(
-            site_id=settings.ROBOT_EXR_SITE_ID,
+        self._add_dock_robot_task_to_mission(
             task_name="dock",
-            docking_station_id=settings.DOCKING_STATION_ID,
-        )
-        _ = self.api.add_task_to_mission_definition(
-            task_id=dock_task_id,
             mission_definition_id=mission_definition_id,
         )
 
-        _ = self.api.start_mission_execution(
+        self.api.start_mission_execution(
             mission_definition_id=mission_definition_id, robot_id=settings.ROBOT_EXR_ID
         )
 
@@ -288,7 +277,7 @@ class Robot(RobotInterface):
             point_of_interest_input=poi_input
         )
 
-        _ = self.api.add_point_of_interest_to_stage(POI_id=poi_id, stage_id=stage_id)
+        self.api.add_point_of_interest_to_stage(POI_id=poi_id, stage_id=stage_id)
 
         return poi_id
 
@@ -322,3 +311,29 @@ class Robot(RobotInterface):
         )
 
         return add_task_id
+
+    def _add_point_of_interest_inspection_task_to_mission(
+        self, task_name: str, point_of_interest_id: str, mission_definition_id: str
+    ):
+        poi_task_id: str = self.api.create_point_of_interest_inspection_task_definition(
+            site_id=settings.ROBOT_EXR_SITE_ID,
+            task_name=task_name,
+            point_of_interest_id=point_of_interest_id,
+        )
+        self.api.add_task_to_mission_definition(
+            task_id=poi_task_id,
+            mission_definition_id=mission_definition_id,
+        )
+
+    def _add_dock_robot_task_to_mission(
+        self, task_name: str, mission_definition_id: str
+    ):
+        dock_task_id: str = self.api.create_dock_robot_task_definition(
+            site_id=settings.ROBOT_EXR_SITE_ID,
+            task_name=task_name,
+            docking_station_id=settings.DOCKING_STATION_ID,
+        )
+        self.api.add_task_to_mission_definition(
+            task_id=dock_task_id,
+            mission_definition_id=mission_definition_id,
+        )
