@@ -18,7 +18,11 @@ from alitra import (
     Transform,
     align_maps,
 )
-from robot_interface.models.exceptions import RobotException
+from robot_interface.models.exceptions.robot_exceptions import (
+    RobotCommunicationException,
+    RobotInitializeException,
+    RobotMissionStatusException,
+)
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
 from robot_interface.models.mission.mission import Mission
@@ -141,8 +145,12 @@ class Robot(RobotInterface):
         except NoMissionRunningException:
             # This is a temporary solution until we have mission status by mission id
             return MissionStatus.Successful
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not get status of running mission"
+            self.logger.error(message)
+            raise RobotMissionStatusException(
+                error_description=message,
+            )
 
     def initiate_step(self, step: Step) -> None:
         self.logger.error("An invalid interface function was called")
@@ -155,10 +163,12 @@ class Robot(RobotInterface):
     def stop(self) -> None:
         try:
             self.api.pause_current_mission(self.exr_robot_id)
-        except RobotException:
-            raise
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not stop the running mission"
+            self.logger.error(message)
+            raise RobotCommunicationException(
+                error_description=message,
+            )
 
     def get_inspections(self, step: InspectionStep) -> Sequence[Inspection]:
         raise NotImplementedError
@@ -166,10 +176,12 @@ class Robot(RobotInterface):
     def initialize(self, params: InitializeParams) -> None:
         try:
             self.api.wake_up_robot(self.exr_robot_id)
-        except RobotException:
-            raise
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not initialize robot"
+            self.logger.error(message)
+            raise RobotInitializeException(
+                error_description=message,
+            )
 
     def get_telemetry_publishers(
         self, queue: Queue, isar_id: str, robot_name: str
