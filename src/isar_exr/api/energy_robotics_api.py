@@ -1,10 +1,18 @@
 import json
+import logging
 from datetime import datetime
+from logging import Logger
 from time import sleep
 from typing import Any, Dict
 
 from gql.dsl import DSLMutation, DSLQuery, DSLSchema, DSLVariableDefinitions, dsl_gql
-from robot_interface.models.exceptions import RobotException
+from robot_interface.models.exceptions.robot_exceptions import (
+    RobotAPIException,
+    RobotCommunicationException,
+    RobotInfeasibleMissionException,
+    RobotMapException,
+    RobotMissionStatusException,
+)
 from robot_interface.models.mission.status import MissionStatus
 
 from isar_exr.api.graphql_client import GraphqlClient
@@ -27,6 +35,7 @@ class EnergyRoboticsApi:
     def __init__(self) -> None:
         self.client: GraphqlClient = GraphqlClient()
         self.schema: DSLSchema = self.client.schema
+        self.logger: Logger = logging.getLogger(EnergyRoboticsApi.__name__)
 
     def get_mission_status(self, exr_robot_id: str) -> MissionStatus:
         variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
@@ -98,8 +107,10 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(pause_current_mission_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            raise RobotCommunicationException(
+                error_description="Could not pause the running mission",
+            )
 
         status: ExrMissionStatus = ExrMissionStatus(result["status"])
         success: bool = status in [
@@ -107,7 +118,9 @@ class EnergyRoboticsApi:
             ExrMissionStatus.PauseRequested,
         ]
         if not success:
-            raise RobotException(f"Invalid status after pausing mission: '{status}'")
+            raise RobotMissionStatusException(
+                error_description=f"Invalid status after pausing mission: '{status}'"
+            )
 
     def create_point_of_interest(
         self, point_of_interest_input: AddPointOfInterestInput
@@ -132,8 +145,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_point_of_interest_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not create POI"
+            self.logger.error(message)
+            raise RobotMapException(
+                error_description=message,
+            )
 
         return response_dict["addPointOfInterest"]["id"]
 
@@ -166,8 +183,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(upsert_point_of_interest_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not upsert POI"
+            self.logger.error(message)
+            raise RobotMapException(
+                error_description=message,
+            )
 
         return response_dict["upsertPointOfInterest"]["id"]
 
@@ -204,8 +225,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_dock_robot_task_definition_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not create dock task definition"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["createDockRobotTaskDefinition"]["id"]
 
@@ -242,8 +267,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_poi_inspection_task_definition_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not create dock task definition"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["createPoiInspectionTaskDefinition"]["id"]
 
@@ -279,8 +308,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_waypoint_task_definition_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not create waypoint task definition"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["createWaypointTaskDefinition"]["id"]
 
@@ -315,8 +348,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(add_task_to_mission_definition_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not add task to mission definition"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["addTaskToMissionDefinition"]["id"]
 
@@ -348,8 +385,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(remove_task_from_mission_definition_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not remove task from mission definition"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["removeTaskFromMissionDefinition"]["id"]
 
@@ -375,8 +416,12 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(wake_up_robot_mutation), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not wake up robot"
+            self.logger.error(message)
+            raise RobotMissionStatusException(
+                error_description=message,
+            )
 
         startTime = datetime.today()
         while not self.is_robot_awake(exr_robot_id):
@@ -384,8 +429,8 @@ class EnergyRoboticsApi:
                 datetime.today() - startTime
             ).total_seconds()
             if time_passed_since_function_call > timeout:
-                raise RobotException(
-                    f"Not able to wake up robot after '{timeout}' seconds."
+                raise RobotMissionStatusException(
+                    error_description=f"Not able to wake up robot after '{timeout}' seconds.",
                 )
             sleep(1)
 
@@ -409,11 +454,17 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(check_if_awake_query), params
             )
-        except Exception as e:
-            raise RobotException(e)
+        except Exception:
+            message: str = "Could not check if robot is awake"
+            self.logger.error(message)
+            raise RobotMissionStatusException(
+                error_description=message,
+            )
 
         if not result["currentRobotStatus"]["isConnected"]:
-            raise RobotException("Robot is not connected")
+            raise RobotMissionStatusException(
+                error_description="Robot is not connected",
+            )
 
         status: AwakeStatus = AwakeStatus(result["currentRobotStatus"]["awakeStatus"])
         success: bool = status in [AwakeStatus.Awake]
@@ -451,8 +502,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_mission_definition_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not create mission definition"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         mission_definition_id = response_dict["createMissionDefinition"]["id"]
         return mission_definition_id
@@ -485,8 +540,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(start_mission_execution_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not start mission execution"
+            self.logger.error(message)
+            raise RobotInfeasibleMissionException(
+                error_description=message,
+            )
 
         mission_execution_id = response_dict["startMissionExecution"]["id"]
         return mission_execution_id
@@ -510,8 +569,10 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(discard_stage_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            raise RobotAPIException(
+                error_description="Could not discard stage",
+            )
 
         return response_dict["discardSiteStage"]["id"]
 
@@ -534,8 +595,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_stage_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not create stage"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["openSiteStage"]["id"]
 
@@ -559,8 +624,10 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(add_point_of_interest_to_stage_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            raise RobotAPIException(
+                error_description="Could not add POI to stage",
+            )
 
         return response_dict["addPointOfInterestToStage"]["id"]
 
@@ -585,8 +652,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(commit_site_to_snapshot_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not commit site to snapshot"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["commitSiteChanges"]["id"]
 
@@ -610,8 +681,12 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(set_snapshot_as_head_mutation), params
             )
-        except Exception as e:
-            raise RobotException from e
+        except Exception:
+            message: str = "Could not set snapshop as head"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
 
         return response_dict["selectCurrentSiteSnapshotHead"]["id"]
 

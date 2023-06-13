@@ -1,28 +1,26 @@
-from datetime import datetime, timedelta
 from typing import Any, Dict
 from unittest import mock
 from unittest.mock import Mock
 
-from isar_exr.api.graphql_client import GraphqlClient
-from isar_exr.api.models.enums import AwakeStatus
-
 import pytest
 from gql import Client
+from robot_interface.models.exceptions.robot_exceptions import RobotException
 
 from isar_exr.api.energy_robotics_api import EnergyRoboticsApi
-from robot_interface.models.exceptions import RobotException
-from isar_exr.config.settings import settings
+from isar_exr.api.graphql_client import GraphqlClient
+from isar_exr.api.models.enums import AwakeStatus
 from isar_exr.api.models.models import (
     AddPointOfInterestInput,
     Point3DInput,
+    PointOfInterestActionPhotoInput,
     PointOfInterestProducerInput,
+    PointOfInterestTypeEnum,
+    Pose3DInput,
     Pose3DStampedInput,
     QuaternionInput,
-    Pose3DInput,
-    PointOfInterestTypeEnum,
-    PointOfInterestActionPhotoInput,
     UpsertPointOfInterestInput,
 )
+from isar_exr.config.settings import settings
 
 
 @mock.patch(
