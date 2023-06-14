@@ -667,10 +667,10 @@ class EnergyRoboticsApi:
         variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
 
         set_snapshot_as_head_mutation: DSLMutation = DSLMutation(
-            self.schema.Mutation.selectCurrentSiteSnapshotHead.args(
+            self.schema.Mutation.processSiteSnapshotHeadSelection.args(
                 siteId=variable_definitions_graphql.siteId,
                 siteSnapshotId=variable_definitions_graphql.siteSnapshotId,
-            ).select(self.schema.SiteSnapshotType.id)
+            ).select(self.schema.ProcessingPipelineType.id)
         )
 
         set_snapshot_as_head_mutation.variable_definitions = (
@@ -688,7 +688,7 @@ class EnergyRoboticsApi:
                 error_description=message,
             )
 
-        return response_dict["selectCurrentSiteSnapshotHead"]["id"]
+        return response_dict["processSiteSnapshotHeadSelection"]["id"]
 
     def get_current_site_stage(self, site_id: str) -> str:
         variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
