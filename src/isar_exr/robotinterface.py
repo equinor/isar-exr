@@ -244,7 +244,7 @@ class Robot(RobotInterface):
         target: Position = self.transform.transform_position(
             positions=step.target,
             from_=step.target.frame,
-            to_=Frame("asset"),
+            to_=Frame("robot"),
         )
         pose: Pose3DStampedInput = Pose3DStampedInput(
             timestamp=time.time(),
@@ -285,7 +285,7 @@ class Robot(RobotInterface):
         self, mission_definition_id: str, step: Step
     ) -> str:
         pose: Pose = self.transform.transform_pose(
-            pose=step.pose, from_=step.pose.frame, to_=Frame("asset")
+            pose=step.pose, from_=step.pose.frame, to_=Frame("robot")
         )
         pose_3d_stamped: Pose3DStampedInput = Pose3DStampedInput(
             timestamp=time.time(),
