@@ -439,7 +439,7 @@ class TestStageAndSnapshot:
     }
     set_head_expected_return_id: str = "snapshot_id"
     api_execute_response_set_head: Dict[str, Any] = {
-        "selectCurrentSiteSnapshotHead": {"id": set_head_expected_return_id}
+        "processSiteSnapshotHeadSelection": {"id": set_head_expected_return_id}
     }
     current_site_stage_expected_return_id: str = "snapshot_id"
     api_execute_response_site_stage: Dict[str, Any] = {
