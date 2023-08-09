@@ -1,41 +1,41 @@
   {
-    "name": "klab_vgii",
+    "name": "simulator",
     "map_from": {
       "name": "exr_default_robot",
       "reference_positions": {
         "positions": [
-        {
-          "x": -4.45,
-          "y": 0.66,
-          "z": -0.02,
-          "frame": {
-            "name": "robot"
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "frame": {
+              "name": "robot"
+            }
+          },
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "frame": {
+              "name": "robot"
+            }
+          },
+          {
+            "x": 2,
+            "y": 2,
+            "z": 2,
+            "frame": {
+              "name": "robot"
+            }
+          },
+          {
+            "x": 3,
+            "y": 3,
+            "z": 3,
+            "frame": {
+              "name": "robot"
+            }
           }
-        },
-        {
-          "x": -6.64,
-          "y": 9.88,
-          "z": 0.87,
-          "frame": {
-            "name": "robot"
-          }
-        },
-        {
-          "x": 1.97,
-          "y": -0.89,
-          "z": 0.03,
-          "frame": {
-            "name": "robot"
-         }
-        },
-        {
-          "x": -9.58,
-          "y": -1.75,
-          "z": -0.18,
-          "frame": {
-            "name": "robot"
-          }
-        }
         ],
         "frame": {
           "name": "robot"
@@ -49,38 +49,38 @@
       "name": "exr_default_asset",
       "reference_positions": {
         "positions": [
-        {
-          "x": 20255.5,
-          "y": 5307.93,
-          "z": 14.661,
-          "frame": {
-            "name": "asset"
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "frame": {
+              "name": "asset"
+            }
+          },
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "frame": {
+              "name": "asset"
+            }
+          },
+          {
+            "x": 2,
+            "y": 2,
+            "z": 2,
+            "frame": {
+              "name": "asset"
+            }
+          },
+          {
+            "x": 3,
+            "y": 3,
+            "z": 3,
+            "frame": {
+              "name": "asset"
+            }
           }
-        },
-        {
-          "x": 20264.7,
-          "y": 5310.26,
-          "z": 15.551,
-          "frame": {
-            "name": "asset"
-          }
-        },
-        {
-          "x": 20254.1,
-          "y": 5301.48,
-          "z": 14.651,
-          "frame": {
-            "name": "asset"
-          }
-        },
-        {
-          "x": 20253.0,
-          "y": 5313.02,
-          "z": 14.501,
-          "frame": {
-            "name": "asset"
-          } 
-        }
         ],
         "frame": {
           "name": "asset"
@@ -89,23 +89,23 @@
       "frame": {
         "name": "asset"
       },
-    "bounds": {
-      "position1": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "frame": {
-          "name": "asset"
-        }
-      },
-      "position2": {
-        "x": 99999,
-        "y": 99999,
-        "z": 99999,
-        "frame": {
-          "name": "asset"
+      "bounds": {
+        "position1": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "frame": {
+            "name": "asset"
+          }
+        },
+        "position2": {
+          "x": 99999,
+          "y": 99999,
+          "z": 99999,
+          "frame": {
+            "name": "asset"
+          }
         }
       }
     }
   }
-}
