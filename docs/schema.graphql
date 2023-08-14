@@ -1,3 +1,65 @@
+# The common properties of a data payload. The details are provided in specific type implementations.
+interface AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+}
+
+# Represents the type of an payload recorded by a robot.
+enum DataPayloadTypeEnum {
+  # The recorded data is an image. Typically it is stored as a PNG.
+  PHOTO
+
+  # The recorded payload is an video file. Typically it is stored in the MP4 format using H.264 encoding.
+  VIDEO
+
+  # The recorded payload is an audio file. Typically it is stored in the WEBM format.
+  AUDIO
+
+  # The recorded payload has the form of a 1D time series. This means we have have a discrete series of timestamps. For every timestamp we have a corresponding scalar value (e.g. temperature measurements).
+  TIME_SERIES_1D
+
+  # A superset of the PHOTO type but with the option to render (multiple) svg based overlays on top of it.
+  PHOTO_OVERLAY
+
+  # The recorded data is provided as JSON. The schema is defined by the data producer. Typically the producer is a skill.
+  JSON_DATA
+
+  # Represents a composite type to group multiple payloads together.
+  GROUP
+}
+
+union RegionOfInterestUnion = AreaOfInterestType | PointOfInterestType
+
 # Represents different classes of objects on the site that are no inspection targets but has robot interaction.
 interface AbstractSiteObjectType {
   # The unique identifier of the site object.
@@ -61,68 +123,6 @@ enum MissionTaskDefinitionTypeEnum {
   WAYPOINT
 }
 
-# The common properties of a data payload. The details are provided in specific type implementations.
-interface AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-}
-
-# Represents the type of an payload recorded by a robot.
-enum DataPayloadTypeEnum {
-  # The recorded data is an image. Typically it is stored as a PNG.
-  PHOTO
-
-  # The recorded payload is an video file. Typically it is stored in the MP4 format using H.264 encoding.
-  VIDEO
-
-  # The recorded payload is an audio file. Typically it is stored in the WEBM format.
-  AUDIO
-
-  # The recorded payload has the form of a 1D time series. This means we have have a discrete series of timestamps. For every timestamp we have a corresponding scalar value (e.g. temperature measurements).
-  TIME_SERIES_1D
-
-  # A superset of the PHOTO type but with the option to render (multiple) svg based overlays on top of it.
-  PHOTO_OVERLAY
-
-  # The recorded data is provided as JSON. The schema is defined by the data producer. Typically the producer is a skill.
-  JSON_DATA
-
-  # Represents a composite type to group multiple payloads together.
-  GROUP
-}
-
-union RegionOfInterestUnion = AreaOfInterestType | PointOfInterestType
-
 # Represents an area of interest that is or was located on a customer site. It is currently considered for undirected, omni-directional measurements only.
 type AreaOfInterestType {
   # The unique identifier of the area of interest.
@@ -162,6 +162,371 @@ type Pose3DStampedType {
   orientation: QuaternionType!
 }
 
+type PageDataType {
+  count: Float!
+  limit: Float!
+  offset: Float!
+}
+
+# The recorded data is an image. Typically it is stored as a PNG.
+type PhotoDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The timestamp the data has been generated.
+  timestamp: Timestamp!
+
+  # The uri to access the photo.
+  uri: Uri!
+}
+
+# The recorded payload is an audio file. Typically it is stored in the WEBM format.
+type AudioDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The start timestamp of the audio file.
+  fromTimestamp: Timestamp!
+
+  # The end timestamp of the audio file.
+  toTimestamp: Timestamp!
+
+  # The uri to access the audio file. (Currently only the filename is provided.)
+  uri: Uri!
+}
+
+# The recorded payload is an video file. Typically it is stored in the MP4 format using H.264 encoding.
+type VideoDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The start timestamp of the video file.
+  fromTimestamp: Timestamp!
+
+  # The end timestamp of the video file.
+  toTimestamp: Timestamp!
+
+  # The uri to access the audio file.
+  uri: Uri!
+}
+
+# The recorded payload has the form of a 1D time series. This means we have have a discrete series of timestamps. For every timestamp we have a corresponding scalar value (e.g. temperature measurements).
+type TimeSeries1DDataType {
+  # The name of the data series.
+  timestamp: Timestamp!
+
+  # The position of the robot during the recording of this entry
+  position: Point3DType!
+
+  # The distance which has been traveled to this measurement point.
+  distanceTraveled: Float!
+
+  # The measured value.
+  value: Float
+}
+
+# Represents a 1D timestamped data series.
+type TimeSeries1DDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The name of the data series.
+  name: String!
+
+  # The unit of the data entries.
+  unit: String!
+
+  # The time series data.
+  data: [TimeSeries1DDataType!]!
+}
+
+# Represents superset of the PHOTO type but with the option to render (multiple) svg based overlays on top of it.
+type PhotoOverlayDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The timestamp the image has been created.
+  timestamp: Timestamp!
+
+  # The uri to access the photo.
+  uri: Uri!
+
+  # The overlay (e.g. an SVG) that can be rendered on top of the photo.
+  overlayUri: Uri!
+}
+
+# Represents a single data accessor which allows a skill provider to highlight important fields in the json data.
+type JSONDataAccessorType {
+  # A human readable name of the data field.
+  name: String!
+
+  # A key accessor in dot notation. (e.g. jsonData.subfield.subsubfield).
+  accessor: String!
+}
+
+# Represents the recorded data in a JSON structure. The schema is defined by the data producer. Typically the producer is a skill.
+type JSONDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The JSON data structure.
+  jsonData: Json!
+
+  # Data accessors to highlight important fields in the jsonData field.
+  dataAccessors: [JSONDataAccessorType!]
+}
+
+# Represents a composite type to group multiple payloads together.
+type GroupDataPayloadType implements AbstractDataPayloadType {
+  # The unique identifier of this payload.
+  id: ID!
+
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The type of this payload.
+  dataType: DataPayloadTypeEnum!
+
+  # The producer of this payload. Can be null for Energy Robotics.
+  producer: DataPayloadProducerType
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
+  regionOfInterest: RegionOfInterestUnion
+    @deprecated(
+      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
+    )
+
+  #
+  pointOfInterest: PointOfInterestType
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean!
+
+  # The data payloads of this group.
+  group: [AbstractDataPayloadType!]!
+}
+
+# Represents the description of the producer e.g. skill which has generated the payload data.
+type DataPayloadProducerType {
+  # An dot seperated identifier that groups skills of the same provider. E.g.: com.energy-robotics
+  group: String!
+
+  # A human readable name of the skill that produced the payload.
+  name: String!
+}
+
+# Represents the paginated type of the AbstractDataPayload
+type AbstractDataPayloadsType {
+  page: AbstractDataPayloadTypeConnection!
+  pageData: PageDataType
+}
+
+type AbstractDataPayloadTypeConnection {
+  edges: [AbstractDataPayloadTypeEdge!]
+  pageInfo: AbstractDataPayloadTypePageInfo
+}
+
+type AbstractDataPayloadTypeEdge {
+  cursor: String
+  node: AbstractDataPayloadType
+}
+
+type AbstractDataPayloadTypePageInfo {
+  startCursor: String
+  endCursor: String
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+}
+
 # Represents a point of interest that is or was located on a customer site.
 type PointOfInterestType {
   # The unique identifier of the point of interest.
@@ -187,6 +552,9 @@ type PointOfInterestType {
     # The id of the site.
     returnInLocalFrame: Boolean! = false
   ): Pose3DStampedType!
+
+  # The reference payload associated with the point of interest. It is used for visual serving
+  referenceDataPayload: AbstractDataPayloadType
 
   # The actions of the poi
   actions: [PointOfInterestsActionsType!]!
@@ -355,6 +723,21 @@ enum RobotTypeEnum {
 
   # A flying robot (drone) by DJI. This robot is capable of full autonomy.
   DJI_DRONE
+
+  # The legged ANYMAL robot by Anybotics
+  ANYMAL
+}
+
+# Represents a geographical coordinate with longitude and latitude values.
+type CoordinateType {
+  longitude: Float!
+  latitude: Float!
+}
+
+# Represents the origin of a site e.g. GPS coordinates of the site in the world.
+type SiteOriginType {
+  # The coordinates of the site
+  coordinates: CoordinateType!
 }
 
 # Represents a customer site on which one or more robots operates on.
@@ -370,6 +753,9 @@ type SiteType {
 
   # Optional, a location description of the site.
   location: String
+
+  # Optional, a specific site origin
+  origin: SiteOriginType
 
   # The robots operating on this site.
   robots: [RobotType!]!
@@ -427,6 +813,9 @@ type CameraDescriptionType {
 
   # Whether or not the camera supports region of interest selection.
   regionOfInterestSupported: Boolean!
+
+  # The limits of the region of interest selection.
+  minimumRegionOfInterest: RegionOfInterestLimitType
 
   # The limits of the region of interest selection.
   maximumRegionOfInterest: RegionOfInterestLimitType
@@ -609,6 +998,36 @@ type RobotSubscriptionType {
   robot: RobotType!
 }
 
+# A RobotSnapshot represents a specific robot configuration at a certain timestamp. A snapshot is owned by the site the robot was operating on. This has the effect of a new snapshot if the robot is moved to a new site or the configuration has changed.
+type RobotSnapshotType {
+  # The timestamp this snapshot has been created.
+  timestamp: Timestamp!
+
+  # The robot number of the robot.
+  number: Int!
+
+  # The type of the robot.
+  type: RobotTypeEnum!
+
+  # The human readable name of the robot.
+  name: String!
+
+  # The robot config of the robot during this snapshot.
+  config: RobotConfigType!
+}
+
+# Represents the subscription type for a data payload.
+type DataPayloadSubscriptionType {
+  # The timestamp of this subscription message.
+  timestamp: Timestamp!
+
+  # If true, the data payloads was already available and has been updated
+  updated: Boolean!
+
+  # The data payload
+  dataPayload: AbstractDataPayloadType!
+}
+
 # Represents the subscription type for a point of interest.
 type PointOfInterestSubscriptionType {
   # The timestamp of this subscription message.
@@ -636,12 +1055,6 @@ enum DataOperationTypeEnum {
   DELETE_MANY
 }
 
-type PageDataType {
-  count: Float!
-  limit: Float!
-  offset: Float!
-}
-
 # A SiteSnapshot represents a specific site configuration at a certain timestamp. This includes points of interests, site objects, maps and more.
 type SiteSnapshotType {
   # The unique identifier of the site snapshot.
@@ -667,6 +1080,9 @@ type SiteSnapshotType {
 
   # A list of non-injectable objects of this site at the time of the snapshot
   siteObjects: [AbstractSiteObjectType!]!
+
+  # The site stage this snapshot is based on
+  siteStage: SiteStageType
 }
 
 type SiteSnapshotsType {
@@ -822,24 +1238,6 @@ type UserType {
   name: String!
   email: String!
   isEngineer: Boolean!
-}
-
-# A RobotSnapshot represents a specific robot configuration at a certain timestamp. A snapshot is owned by the site the robot was operating on. This has the effect of a new snapshot if the robot is moved to a new site or the configuration has changed.
-type RobotSnapshotType {
-  # The timestamp this snapshot has been created.
-  timestamp: Timestamp!
-
-  # The robot number of the robot.
-  number: Int!
-
-  # The type of the robot.
-  type: RobotTypeEnum!
-
-  # The human readable name of the robot.
-  name: String!
-
-  # The robot config of the robot during this snapshot.
-  config: RobotConfigType!
 }
 
 # Represents a site recording performed by a robot
@@ -1042,6 +1440,102 @@ type WaypointTaskDefinitionType implements AbstractMissionTaskDefinitionType {
   waypoint: WaypointType
 }
 
+# Represents the required configuration of a robot to execute a specific mission.
+type RequiredRobotConfigType {
+  # Force this mission to be only available for a specific robot.
+  robotId: String
+}
+
+# Contains the path relevant properties of a mission definition.
+type MissionDefinitionPathDataType {
+  # The full planned path of this mission.
+  fullPath: [Pose3DStampedType!]!
+
+  # Whether or not the mission is still processed. Use subscription to be notified about changes or query the mission later again.
+  isProcessing: Boolean!
+
+  # The id of the tasks which are still processing.
+  tasksInProgress: [String!]!
+    @deprecated(
+      reason: "[25.05.2023] will no longer be supported. Processing procedure changed."
+    )
+}
+
+# Represents the definition of a mission as a result of the mission planning. (Not to be confused with the MissionExecution which represents a specific execution of a MissionDefinition by a specific robot)
+type MissionDefinitionType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
+  legacyMissionDefinitionId: String
+    @deprecated(
+      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
+    )
+
+  # The list of mission tasks. If 'legacyMissionDefinitionId' is set, this list will be empty.
+  tasks: [AbstractMissionTaskDefinitionType!]!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum
+
+  # The name or path of the imported file
+  filename: String
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+}
+
+# The different mission definition types.
+enum MissionDefinitionTypeEnum {
+  # Mission definition is using an imported mission file.
+  IMPORTED
+
+  # Mission definition was created by the click and inspect feature.
+  CLICK_AND_INSPECT
+
+  # Mission definition was created by the teach and repeat feature.
+  TEACH_AND_REPEAT
+}
+
+# Subset of the mission definition type. It does not include large/computational expensive properties like 'tasks' and 'fullPath'. In order to retrieve this data query the specific mission definition explicitly.
+type MissionDefinitionsType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+
+  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
+  legacyMissionDefinitionId: String
+    @deprecated(
+      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
+    )
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum
+
+  # The name or path of the imported file
+  filename: String
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+}
+
 type RosStampType {
   secs: Float!
   nsecs: Float!
@@ -1085,96 +1579,6 @@ type MissionRoadmapType {
 
   # The list of edges in this roadmap
   roadmap_edges: [MissionRoadmapEdgeType!]!
-}
-
-# Represents the required configuration of a robot to execute a specific mission.
-type RequiredRobotConfigType {
-  # Force this mission to be only available for a specific robot.
-  robotId: String
-}
-
-# Contains the path relevant properties of a mission definition.
-type MissionDefinitionPathDataType {
-  # The full planned path of this mission.
-  fullPath: [Pose3DStampedType!]!
-
-  # Whether or not the mission is still processed. Use subscription to be notified about changes or query the mission later again.
-  isProcessing: Boolean!
-
-  # The id of the tasks which are still processing.
-  tasksInProgress: [String!]!
-}
-
-# Represents the definition of a mission as a result of the mission planning. (Not to be confused with the MissionExecution which represents a specific execution of a MissionDefinition by a specific robot)
-type MissionDefinitionType {
-  # The unique identifier of the mission definition.
-  id: ID!
-
-  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
-  isDynamicMission: Boolean!
-
-  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
-  legacyMissionDefinitionId: String
-    @deprecated(
-      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
-    )
-
-  # A human-readable name of the mission task.
-  name: String!
-
-  # The list of mission tasks. If 'legacyMissionDefinitionId' is set, this list will be empty.
-  tasks: [AbstractMissionTaskDefinitionType!]!
-
-  # The path details of the mission.
-  path: MissionDefinitionPathDataType
-
-  # The type of the mission.
-  type: MissionDefinitionTypeEnum
-
-  # The name or path of the imported file
-  filename: String
-
-  # Defines the required robot configuration to execute this mission definition.
-  requiredRobotConfig: RequiredRobotConfigType
-}
-
-# The different mission definition types.
-enum MissionDefinitionTypeEnum {
-  # Mission definition is using an imported mission file.
-  IMPORTED
-
-  # Mission definition was created by the click and inspect feature.
-  CLICK_AND_INSPECT
-
-  # Mission definition was created by the teach and repeat feature.
-  TEACH_AND_REPEAT
-}
-
-# Subset of the mission definition type. It does not include large/computational expensive properties like 'tasks' and 'fullPath'. In order to retrieve this data query the specific mission definition explicitly.
-type MissionDefinitionsType {
-  # The unique identifier of the mission definition.
-  id: ID!
-
-  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
-  isDynamicMission: Boolean!
-
-  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
-  legacyMissionDefinitionId: String
-    @deprecated(
-      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
-    )
-
-  # A human-readable name of the mission task.
-  name: String!
-
-  # The type of the mission.
-  type: MissionDefinitionTypeEnum
-
-  # The name or path of the imported file
-  filename: String
-
-  # Defines the required robot configuration to execute this mission definition.
-  requiredRobotConfig: RequiredRobotConfigType
 }
 
 # Represents the subscription type for a mission definition.
@@ -1270,65 +1674,6 @@ type WebRtcHandshakeResponseType {
 
   # The SDP answer of the remote WebRTC peer.
   sdp: Sdp!
-}
-
-type ContextKeyValuePairType {
-  key: String!
-  value: [String!]!
-}
-
-# Represents the creator of a feature flag.
-type CreatorType {
-  # The user name.
-  name: String!
-
-  # The user email.
-  email: String!
-
-  # The user id.
-  userId: Float!
-}
-
-# Represents a feature flag
-type FeatureFlagType {
-  # The name of the feature-flag.
-  name: String!
-
-  # The context of the feature-flag.
-  context: [ContextKeyValuePairType!]
-
-  # The state of the feature-flag.
-  enabled: Boolean!
-}
-
-# Represents a feature flag
-type PrivateFeatureFlagType {
-  # The name of the feature-flag.
-  name: String!
-
-  # The context of the feature-flag.
-  context: [ContextKeyValuePairType!]
-
-  # The state of the feature-flag.
-  enabled: Boolean!
-
-  # The unique identifier of the feature-flag.
-  id: ID!
-
-  # The timestamp when the feature was first created
-  createdAt: Timestamp!
-
-  # The timestamp when the feature last was modified
-  updatedAt: Timestamp
-
-  # The description of the feature-flag.
-  description: String
-
-  # The creator of the feature-flag.
-  creator: CreatorType!
-
-  # The ticket information of the feature-flag.
-  ticket: String
 }
 
 # Represents execution details of a robot command.
@@ -1695,7 +2040,7 @@ enum SiteAccessRoleEnum {
 # Represents a users account in the user management system
 type UserAccountType {
   userId: Int!
-  firstName: String!
+  firstName: String
   lastName: String!
   email: String!
   robotPermissions: [RobotPermissionType!]!
@@ -1705,7 +2050,7 @@ type UserAccountType {
 # Represents the general user account info
 type UserAccountInfoType {
   userId: Int!
-  firstName: String!
+  firstName: String
   lastName: String!
   email: String!
 }
@@ -1783,6 +2128,18 @@ enum DiagnosticsTypeEnum {
   ERROR
 }
 
+# Represents a customer flag on an event
+type CustomerFlagType {
+  # The timestamp the event was flagged
+  timestamp: Timestamp!
+
+  # The user who flagged the event
+  user: UserType!
+
+  # The customer flag
+  reason: String!
+}
+
 # Represents a generic event in the ER GraphQL API.
 type EventType {
   # The id of the event.
@@ -1796,6 +2153,9 @@ type EventType {
 
   # The diagnostics describing the event.
   diagnostics: [DiagnosticsType!]!
+
+  # A customer flag if available
+  customerFlag: CustomerFlagType
 }
 
 # Represents the paginated type of the AbstractDataPayload
@@ -1819,6 +2179,21 @@ type EventTypePageInfo {
   endCursor: String
   hasPreviousPage: Boolean!
   hasNextPage: Boolean!
+}
+
+# The categories of robot events
+type EventCategoriesType {
+  # Obstructions causing the robot to stop.
+  obstruction: [String!]!
+
+  # Weather related issues causing the robot to stop
+  weather: [String!]!
+
+  # Software related issues causing the robot to stop
+  software: [String!]!
+
+  # Hardware related issues causing the robot to stop
+  hardware: [String!]!
 }
 
 # Represents a mission execution control request by the Cloud Core API (triggered by the user interface or the API directly) to a particular robot.
@@ -1912,6 +2287,9 @@ type MissionExecutionType {
 
   # The id of the task definition which is currently executed.
   currentExecutedTaskId: String
+
+  # Flag that marks whether the mission should be considered for Energy Robotics performance KPIs.
+  kpiRelevantMission: Boolean!
 }
 
 # Represents the control mode of the robot.
@@ -2004,377 +2382,6 @@ type MissionExecutionSnapshotType {
   kpiRelevantMission: Boolean!
 }
 
-# The recorded data is an image. Typically it is stored as a PNG.
-type PhotoDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The timestamp the data has been generated.
-  timestamp: Timestamp!
-
-  # The uri to access the photo.
-  uri: Uri!
-}
-
-# The recorded payload is an audio file. Typically it is stored in the WEBM format.
-type AudioDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The start timestamp of the audio file.
-  fromTimestamp: Timestamp!
-
-  # The end timestamp of the audio file.
-  toTimestamp: Timestamp!
-
-  # The uri to access the audio file. (Currently only the filename is provided.)
-  uri: Uri!
-}
-
-# The recorded payload is an video file. Typically it is stored in the MP4 format using H.264 encoding.
-type VideoDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The start timestamp of the video file.
-  fromTimestamp: Timestamp!
-
-  # The end timestamp of the video file.
-  toTimestamp: Timestamp!
-
-  # The uri to access the audio file.
-  uri: Uri!
-}
-
-# The recorded payload has the form of a 1D time series. This means we have have a discrete series of timestamps. For every timestamp we have a corresponding scalar value (e.g. temperature measurements).
-type TimeSeries1DDataType {
-  # The name of the data series.
-  timestamp: Timestamp!
-
-  # The position of the robot during the recording of this entry
-  position: Point3DType!
-
-  # The distance which has been traveled to this measurement point.
-  distanceTraveled: Float!
-
-  # The measured value.
-  value: Float
-}
-
-# Represents a 1D timestamped data series.
-type TimeSeries1DDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The name of the data series.
-  name: String!
-
-  # The unit of the data entries.
-  unit: String!
-
-  # The time series data.
-  data: [TimeSeries1DDataType!]!
-}
-
-# Represents superset of the PHOTO type but with the option to render (multiple) svg based overlays on top of it.
-type PhotoOverlayDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The timestamp the image has been created.
-  timestamp: Timestamp!
-
-  # The uri to access the photo.
-  uri: Uri!
-
-  # The overlay (e.g. an SVG) that can be rendered on top of the photo.
-  overlayUri: Uri!
-}
-
-# Represents a single data accessor which allows a skill provider to highlight important fields in the json data.
-type JSONDataAccessorType {
-  # A human readable name of the data field.
-  name: String!
-
-  # A key accessor in dot notation. (e.g. jsonData.subfield.subsubfield).
-  accessor: String!
-}
-
-# Represents the recorded data in a JSON structure. The schema is defined by the data producer. Typically the producer is a skill.
-type JSONDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The JSON data structure.
-  jsonData: Json!
-
-  # Data accessors to highlight important fields in the jsonData field.
-  dataAccessors: [JSONDataAccessorType!]
-}
-
-# Represents a composite type to group multiple payloads together.
-type GroupDataPayloadType implements AbstractDataPayloadType {
-  # The unique identifier of this payload.
-  id: ID!
-
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The type of this payload.
-  dataType: DataPayloadTypeEnum!
-
-  # The producer of this payload. Can be null for Energy Robotics.
-  producer: DataPayloadProducerType
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # (For future use, currently always null) The region of interest on the site were the data has been recorded. It has been either a point of interest or an area of interest.
-  regionOfInterest: RegionOfInterestUnion
-    @deprecated(
-      reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
-    )
-
-  #
-  pointOfInterest: PointOfInterestType
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean!
-
-  # The data payloads of this group.
-  group: [AbstractDataPayloadType!]!
-}
-
-# Represents the description of the producer e.g. skill which has generated the payload data.
-type DataPayloadProducerType {
-  # An dot seperated identifier that groups skills of the same provider. E.g.: com.energy-robotics
-  group: String!
-
-  # A human readable name of the skill that produced the payload.
-  name: String!
-}
-
-# Represents the paginated type of the AbstractDataPayload
-type AbstractDataPayloadsType {
-  page: AbstractDataPayloadTypeConnection!
-  pageData: PageDataType
-}
-
-type AbstractDataPayloadTypeConnection {
-  edges: [AbstractDataPayloadTypeEdge!]
-  pageInfo: AbstractDataPayloadTypePageInfo
-}
-
-type AbstractDataPayloadTypeEdge {
-  cursor: String
-  node: AbstractDataPayloadType
-}
-
-type AbstractDataPayloadTypePageInfo {
-  startCursor: String
-  endCursor: String
-  hasPreviousPage: Boolean!
-  hasNextPage: Boolean!
-}
-
-# Represents the subscription type for a data payload.
-type DataPayloadSubscriptionType {
-  # The timestamp of this subscription message.
-  timestamp: Timestamp!
-
-  # If true, the data payloads was already available and has been updated
-  updated: Boolean!
-
-  # The data payload
-  dataPayload: AbstractDataPayloadType!
-}
-
 # Represents a copy of a subset of the mission definition. It is used to store the relevant information in the mission report. This data is still available even if the original mission has been removed or modified.
 type MissionDefinitionSnapshotType {
   # The legacy mission definition id.
@@ -2420,7 +2427,19 @@ type MissionReportType {
   missionDefinitions: [MissionDefinitionSnapshotType!]!
 
   # All the data payloads recorded the mission. It does not matter if it was part of a planned mission or manual taken, or if the data has been generated during postprocessing by a skill.
-  dataPayloads: [AbstractDataPayloadType!]
+  dataPayloads(
+    # A filter to specify which payloads should be included.
+    payloadFilter: FilterDataPayloadsInput! = { includeSkillData: true }
+  ): [AbstractDataPayloadType!]
+}
+
+# A filter type for data payload queries. It allows to specify which payloads are returned.
+input FilterDataPayloadsInput {
+  # Include payloads produced by skills.
+  includeSkillData: Boolean! = true
+
+  # List of payload types that should be included. A BadRequest error is returned if list is empty.
+  includePayloadTypes: [DataPayloadTypeEnum!]
 }
 
 # Subset of the mission report type. It does not include large data property like the 'trajectory' or the 'dataPayloads'. In order to retrieve this data query the specific report explicitly.
@@ -2485,6 +2504,65 @@ type MissionReportSubscriptionType {
 
   # The mission report.
   missionReport: MissionReportType!
+}
+
+type ContextKeyValuePairType {
+  key: String!
+  value: [String!]!
+}
+
+# Represents the creator of a feature flag.
+type CreatorType {
+  # The user name.
+  name: String!
+
+  # The user email.
+  email: String!
+
+  # The user id.
+  userId: Float!
+}
+
+# Represents a feature flag
+type FeatureFlagType {
+  # The name of the feature-flag.
+  name: String!
+
+  # The context of the feature-flag.
+  context: [ContextKeyValuePairType!]
+
+  # The state of the feature-flag.
+  enabled: Boolean!
+}
+
+# Represents a feature flag
+type PrivateFeatureFlagType {
+  # The name of the feature-flag.
+  name: String!
+
+  # The context of the feature-flag.
+  context: [ContextKeyValuePairType!]
+
+  # The state of the feature-flag.
+  enabled: Boolean!
+
+  # The unique identifier of the feature-flag.
+  id: ID!
+
+  # The timestamp when the feature was first created
+  createdAt: Timestamp!
+
+  # The timestamp when the feature last was modified
+  updatedAt: Timestamp
+
+  # The description of the feature-flag.
+  description: String
+
+  # The creator of the feature-flag.
+  creator: CreatorType!
+
+  # The ticket information of the feature-flag.
+  ticket: String
 }
 
 # A field whose value can accept any string except empty ones. It will trim any additional white space before validation.
@@ -2571,6 +2649,9 @@ type Query {
     # The id of the site
     siteId: String!
 
+    # The desired order of the snapshots
+    orderByTimestamp: OrderTypeEnum! = DESCENDING
+
     # The pagination parameters.
     filter: ConnectionInput
   ): SiteSnapshotsType!
@@ -2598,6 +2679,51 @@ type Query {
     # The key of the point of interest.
     key: String!
   ): PointOfInterestType!
+
+  # Request a specific point of interest of a site by customer tag.
+  pointOfInterestByCustomerTag(
+    # The ID of the point of interest.
+    siteId: String!
+
+    # The customer provided tag
+    customerTag: NonEmptyString!
+  ): PointOfInterestType!
+
+  # Find all available payloads recorded by a certain robot.
+  dataPayloadsByRobot(
+    # The query parameters.
+    input: QueryDataPayloadsByRobotInput!
+
+    # The pagination parameters.
+    filter: ConnectionInput!
+  ): AbstractDataPayloadsType!
+
+  # @Internal Find all available payloads recorded at a specific point of interest.
+  dataPayloadsByPointOfInterest(
+    # The id of the interested point of interest
+    pointOfInterestId: String!
+
+    # The pagination parameters.
+    filter: ConnectionInput
+  ): AbstractDataPayloadsType!
+
+  # Find a specific payload.
+  dataPayload(
+    # The id of the data payload
+    id: String!
+  ): AbstractDataPayloadType!
+
+  # Find a specific payload by key.
+  dataPayloadForKey(
+    # The key of the payload
+    key: String!
+  ): AbstractDataPayloadType!
+
+  # Find all payloads involved by a particular skill execution.
+  dataPayloadsBySkillExecution(
+    # The parameters which identify the interested skill execution.
+    input: QueryDataPayloadsBySkillExecutionInput!
+  ): [AbstractDataPayloadType!]!
 
   # Request a specific point of interest.
   siteObject(
@@ -2662,9 +2788,12 @@ type Query {
     # The id of the requested mission definition.
     missionDefinitionId: String!
 
-    # The id of the requested mission definition.
+    # The id of the robot.
     robotId: String!
   ): MissionRoadmapType!
+    @deprecated(
+      reason: "[25.05.2023]: This operation should not be a query, since it might update the roadmap. Use mutation 'computeMissionRoadmapForRobot' instead."
+    )
 
   # @Private Find all task definitions.
   missionTaskDefinitions: [AbstractMissionTaskDefinitionType!]!
@@ -2673,6 +2802,12 @@ type Query {
   gridMapForRobot(
     # The ID of the requested robot.
     robotId: String!
+  ): GridMapType!
+
+  # @Private Receive a sites' current grid map which is used by the path planner.
+  gridMapForSite(
+    # The ID of the requested site.
+    siteId: String!
   ): GridMapType!
 
   # @Private Get the chat history of a particular robot. The messages are ordered by timestamp in descending order
@@ -2774,6 +2909,9 @@ type Query {
     filter: FilterEventsInput
   ): EventsType!
 
+  # @Private All categories and reasons a robot event can have.
+  presetEventCategories: EventCategoriesType!
+
   # @Internal Receive a list of mission execution snapshots of a specific robot for a specified period.
   missionExecutionSnapshots(
     # The id of the site.
@@ -2821,42 +2959,6 @@ type Query {
     # The key of the desired mission report.
     key: String!
   ): MissionReportType!
-
-  # Find all available payloads recorded by a certain robot.
-  dataPayloadsByRobot(
-    # The query parameters.
-    input: QueryDataPayloadsByRobotInput!
-
-    # The pagination parameters.
-    filter: ConnectionInput!
-  ): AbstractDataPayloadsType!
-
-  # @Internal Find all available payloads recorded at a specific point of interest.
-  dataPayloadsByPointOfInterest(
-    # The id of the interested point of interest
-    pointOfInterestId: String!
-
-    # The pagination parameters.
-    filter: ConnectionInput
-  ): AbstractDataPayloadsType!
-
-  # Find a specific payload.
-  dataPayload(
-    # The id of the data payload
-    id: String!
-  ): AbstractDataPayloadType!
-
-  # Find a specific payload by key.
-  dataPayloadForKey(
-    # The key of the payload
-    key: String!
-  ): AbstractDataPayloadType!
-
-  # Find all payloads involved by a particular skill execution.
-  dataPayloadsBySkillExecution(
-    # The parameters which identify the interested skill execution.
-    input: QueryDataPayloadsBySkillExecutionInput!
-  ): [AbstractDataPayloadType!]!
 }
 
 # This input may be used to apply filters to the robot fleet query. The filter criteria are applied as conjunctions. Each filter criterion is optional.
@@ -2866,6 +2968,15 @@ input QueryRobotsInput {
 
   # Filter the list, to robots located on a provided site.
   siteId: String
+}
+
+# Represents the order of a list of results.
+enum OrderTypeEnum {
+  # The data is/should be in ascending order
+  ASCENDING
+
+  # The data is/should be in descending order
+  DESCENDING
 }
 
 input ConnectionInput {
@@ -2880,6 +2991,36 @@ input ConnectionInput {
 
   # Paginate last.
   last: Float
+}
+
+# Parameters to query data payloads by robot
+input QueryDataPayloadsByRobotInput {
+  # Provide data payloads generated by a robot with a provided robot id.
+  robotId: String
+
+  # Provide data payloads generated by a robot with a provided robot number.
+  robotNumber: Int
+
+  # Provide data payloads generated by a list of robot snapshots.
+  robotSnapshotIds: [String!] = []
+
+  # Specify the payload types which should be considered. If this parameter is not set all types are considered. If an empty array is provided a Bad Request is returned.
+  types: [DataPayloadTypeEnum!]
+
+  # Include payloads produced by skills.
+  includeSkillData: Boolean! = true
+}
+
+# Parameters to query data payloads by skill execution details.
+input QueryDataPayloadsBySkillExecutionInput {
+  # The key of the parent payload, the skill has been executed on.
+  parentPayloadKey: String!
+
+  # The group of the skill.
+  producerGroup: String!
+
+  # The name of the skill.
+  producerName: String!
 }
 
 # Query options for mission definition queries.
@@ -2942,33 +3083,6 @@ input RobotFilterInput {
 
   # The robot id
   robotId: String
-}
-
-# Parameters to query data payloads by robot
-input QueryDataPayloadsByRobotInput {
-  # Provide data payloads generated by a robot with a provided robot id.
-  robotId: String
-
-  # Provide data payloads generated by a robot with a provided robot number.
-  robotNumber: Int
-
-  # Provide data payloads generated by a list of robot snapshots.
-  robotSnapshotIds: [String!] = []
-
-  # Specify the payload types which should be considered. If this parameter is not set all types are considered.
-  types: [DataPayloadTypeEnum!]
-}
-
-# Parameters to query data payloads by skill execution details.
-input QueryDataPayloadsBySkillExecutionInput {
-  # The key of the parent payload, the skill has been executed on.
-  parentPayloadKey: String!
-
-  # The group of the skill.
-  producerGroup: String!
-
-  # The name of the skill.
-  producerName: String!
 }
 
 type Mutation {
@@ -3165,6 +3279,21 @@ type Mutation {
     }
   ): PointOfInterestType!
 
+  # @Private Update the reference payload of an point of interest
+  updatePointOfInterestReferenceDataPayload(
+    # The ID of the point of interest.
+    pointOfInterestId: String!
+
+    # The ID of the data payload.
+    dataPayloadId: String!
+  ): PointOfInterestType!
+
+  # @Internal Update the visual serving reference image of one or multiple poi
+  updatePointOfInterestReferenceImage(
+    # The key of the poi
+    input: [UpdatePointOfInterestReferenceImageInput!]!
+  ): [PointOfInterestType!]!
+
   # @Internal Deletes all point of interest of a provided site.
   deleteAllPointOfInterestForSite(
     # The site which should be considered
@@ -3173,6 +3302,37 @@ type Mutation {
     @deprecated(
       reason: "[04-05-2023] No longer possible, change site snapshot head instead"
     )
+
+  # @Internal Create new photo data payload.
+  upsertPhotoDataPayload(
+    input: CreatePhotoDataPayloadInput!
+  ): PhotoDataPayloadType!
+
+  # @Internal Create new audio data payload.
+  upsertAudioDataPayload(
+    input: CreateAudioDataPayloadInput!
+  ): AudioDataPayloadType!
+
+  # @Internal Create new video data payload.
+  upsertVideoDataPayload(
+    input: CreateVideoDataPayloadInput!
+  ): VideoDataPayloadType!
+
+  # @Internal Create new time series 1D data payload.
+  upsertTimeSeries1DDataPayload(
+    input: CreateTimeSeries1dDataPayloadInput!
+  ): TimeSeries1DDataPayloadType!
+
+  # @Internal Create new JSON data payload.
+  upsertJSONDataPayload(
+    input: CreateJSONDataPayloadInput!
+  ): JSONDataPayloadType!
+
+  # @Internal Create a new snapshot of the robot. This has to be done after the configuration of the robot has been completed and/or the robot moved to a different site.
+  createRobotSnapshot(
+    # The id of the robot which should be snapshotted
+    robotId: String!
+  ): RobotSnapshotType!
 
   # @Private Create or update a docking station site object.
   upsertDockingStationSiteObject(
@@ -3208,11 +3368,11 @@ type Mutation {
   createFeatureFlag(input: CreateFeatureFlagInput!): PrivateFeatureFlagType!
 
   # @Internal Remove a feature-flag
-  removeFeatureFlag(id: String!): String!
+  removeFeatureFlag(name: String!): String!
 
   # @Internal Update a feature flag
   updateFeatureFlag(
-    id: String!
+    name: String!
     input: UpdateFeatureFlagInput!
   ): PrivateFeatureFlagType!
 
@@ -3376,12 +3536,6 @@ type Mutation {
     robotId: String!
   ): SiteRecordingType!
 
-  # @Internal Create a new snapshot of the robot. This has to be done after the configuration of the robot has been completed and/or the robot moved to a different site.
-  createRobotSnapshot(
-    # The id of the robot which should be snapshotted
-    robotId: String!
-  ): RobotSnapshotType!
-
   # @Internal Transfer a site snapshot to a target site. The target site has to be on the initial snapshot.
   transferSiteSnapshotToSite(
     # The id of the desired snapshot of the source site
@@ -3395,6 +3549,15 @@ type Mutation {
   createMissionDefinition(
     # The properties of the new mission.
     input: CreateMissionDefinitionInput!
+  ): MissionDefinitionType!
+
+  # @Private Duplicate an existing mission definition.
+  duplicateMissionDefinition(
+    # The id of the mission definition which should be duplicated.
+    id: String!
+
+    # The name of the new mission definition.
+    name: String!
   ): MissionDefinitionType!
 
   # @Private Rename an existing mission definition.
@@ -3444,6 +3607,21 @@ type Mutation {
     # The id of the mission definition which should be deleted.
     id: String!
   ): MissionDefinitionType!
+
+  # @Private Request the roadmap of a specified mission definition and robot.
+  computeMissionRoadmapForRobot(
+    # The id of the requested mission definition.
+    missionDefinitionId: String!
+
+    # The id of the robot.
+    robotId: String!
+  ): MissionRoadmapType!
+
+  # @Private Request the roadmap of a specified mission definition and robot.
+  computeMissionPath(
+    # The id of the requested mission definition.
+    missionDefinitionId: String!
+  ): MissionDefinitionPathDataType!
 
   # @Private Create a new dock robot task definition.
   createDockRobotTaskDefinition(
@@ -3724,12 +3902,6 @@ type Mutation {
     missionTaskDefinitionId: String!
   ): MissionExecutionType!
 
-  # @Internal This mutation is used by a robot to accept or reject mission execution requests. It also may be used to trigger a teleoperated mission by the robot.
-  startMissionExecutionFromRobot(
-    # The parameters to configure the mission execution.
-    input: StartMissionExecutionFromRobotInput!
-  ): MissionExecutionType!
-
   # @Internal Allows the robot to update current mission execution. The updates are published to all connected clients.
   updateMissionExecutionFeedbackFromRobot(
     # The id of the robot that sent the mission execution feedback.
@@ -3834,47 +4006,23 @@ type Mutation {
     # The end timestamp of the mission.
     endTimestamp: Timestamp!
   ): MissionReportType!
-
-  # @Internal Create new photo data payload.
-  upsertPhotoDataPayload(
-    input: CreatePhotoDataPayloadInput!
-  ): PhotoDataPayloadType!
-
-  # @Internal Create new audio data payload.
-  upsertAudioDataPayload(
-    input: CreateAudioDataPayloadInput!
-  ): AudioDataPayloadType!
-
-  # @Internal Create new video data payload.
-  upsertVideoDataPayload(
-    input: CreateVideoDataPayloadInput!
-  ): VideoDataPayloadType!
-
-  # @Internal Create new time series 1D data payload.
-  upsertTimeSeries1DDataPayload(
-    input: CreateTimeSeries1dDataPayloadInput!
-  ): TimeSeries1DDataPayloadType!
-
-  # @Internal Create new photo overlay data payload.
-  upsertPhotoOverlayDataPayload(
-    input: CreatePhotoOverlayDataPayloadInput!
-  ): PhotoOverlayDataPayloadType!
-
-  # @Internal Create new JSON data payload.
-  upsertJSONDataPayload(
-    input: CreateJSONDataPayloadInput!
-  ): JSONDataPayloadType!
-
-  # @Internal Create a new group data payload.
-  upsertGroupDataPayload(
-    input: CreateGroupDataPayloadInput!
-  ): GroupDataPayloadType!
 }
 
 input CreateSiteInput {
   number: Int!
   name: String!
   location: String
+  origin: SiteOriginInput
+}
+
+input SiteOriginInput {
+  coordinates: CoordinateInput!
+}
+
+# Parameters to create a coordinate.
+input CoordinateInput {
+  longitude: Float!
+  latitude: Float!
 }
 
 # The payload necessary to update an existing site.
@@ -3884,6 +4032,9 @@ input UpdateSiteInput {
 
   # A location description of the site.
   location: String
+
+  # Setting the origin explicitly to 'null' will remove the origin config, if it is nor provided it remains un touched.
+  origin: SiteOriginInput
 }
 
 input AddSitePointCloudConfigInput {
@@ -4140,6 +4291,246 @@ enum PointOfInterestProducerTypeEnum {
   MANUAL_IMPORT
 }
 
+# Payloads to update the reference image of a point of interest
+input UpdatePointOfInterestReferenceImageInput {
+  # The key of the poi
+  pointOfInterestKey: String!
+
+  # The name of the reference image (including file exertion)
+  referenceImageName: NonEmptyString!
+}
+
+# Parameters to create a new photo data payload.
+input CreatePhotoDataPayloadInput {
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
+  producer: CreateDataPayloadProducerInput
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # The id of the robot snapshot which has generated the payload.
+  robotNumber: Float!
+
+  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
+  acquisitionTimestamp: Timestamp
+
+  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  pointOfInterestId: String
+
+  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  areaOfInterestId: String
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean
+
+  # Metadata associated with this data payload.
+  jsonMetaData: Json
+
+  # The timestamp the data has been generated.
+  timestamp: Timestamp!
+
+  # The uri to access the photo. (Currently only the filename is provided.)
+  uri: String!
+}
+
+# Parameters to create a payload producer.
+input CreateDataPayloadProducerInput {
+  # An dot seperated identifier that groups skills of the same provider. E.g.: com.energy-robotics
+  group: String!
+
+  # A human readable name of the skill that produced the payload.
+  name: String!
+}
+
+# Parameters to create a new audio data payload.
+input CreateAudioDataPayloadInput {
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
+  producer: CreateDataPayloadProducerInput
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # The id of the robot snapshot which has generated the payload.
+  robotNumber: Float!
+
+  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
+  acquisitionTimestamp: Timestamp
+
+  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  pointOfInterestId: String
+
+  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  areaOfInterestId: String
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean
+
+  # Metadata associated with this data payload.
+  jsonMetaData: Json
+
+  # The start timestamp of the audio file.
+  fromTimestamp: Timestamp!
+
+  # The end timestamp of the audio file.
+  toTimestamp: Timestamp!
+
+  # The uri to access the audio file. (Currently only the filename is provided.)
+  uri: String!
+}
+
+# Parameters to create a new video data payload.
+input CreateVideoDataPayloadInput {
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
+  producer: CreateDataPayloadProducerInput
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # The id of the robot snapshot which has generated the payload.
+  robotNumber: Float!
+
+  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
+  acquisitionTimestamp: Timestamp
+
+  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  pointOfInterestId: String
+
+  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  areaOfInterestId: String
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean
+
+  # Metadata associated with this data payload.
+  jsonMetaData: Json
+
+  # The start timestamp of the video.
+  fromTimestamp: Timestamp!
+
+  # The end timestamp of the video.
+  toTimestamp: Timestamp!
+
+  # The uri to access the video. (Currently only the filename is provided.)
+  uri: String!
+}
+
+# Parameters to create a new time series 1d data payload.
+input CreateTimeSeries1dDataPayloadInput {
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
+  producer: CreateDataPayloadProducerInput
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # The id of the robot snapshot which has generated the payload.
+  robotNumber: Float!
+
+  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
+  acquisitionTimestamp: Timestamp
+
+  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  pointOfInterestId: String
+
+  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  areaOfInterestId: String
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean
+
+  # Metadata associated with this data payload.
+  jsonMetaData: Json
+
+  # The uri to access the json file containing the time series
+  uri: String!
+}
+
+# Parameters to create a new JSON data payload.
+input CreateJSONDataPayloadInput {
+  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
+  key: String!
+
+  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
+  parentPayloadKey: String
+
+  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
+  producer: CreateDataPayloadProducerInput
+
+  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
+  dataLabel: String
+
+  # The id of the robot snapshot which has generated the payload.
+  robotNumber: Float!
+
+  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
+  acquisitionTimestamp: Timestamp
+
+  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  pointOfInterestId: String
+
+  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
+  areaOfInterestId: String
+
+  # Represents the POI name specified in the mission editor.
+  poiName: String
+
+  # Whether or not the data is synced from the robot to the cloud.
+  isSynced: Boolean
+
+  # Metadata associated with this data payload.
+  jsonMetaData: Json
+
+  # The JSON data structure.
+  jsonData: Json!
+
+  # Data accessors to highlight important fields in the jsonData field.
+  dataAccessors: [CreateJSONDataAccessorInput!]
+}
+
+# Parameters to create a new JSON data accessor
+input CreateJSONDataAccessorInput {
+  # A human readable name of the data field.
+  name: String!
+
+  # A key accessor in dot notation. (e.g. jsonData.subfield.subsubfield).
+  accessor: String!
+}
+
 # Parameters to create a new docking station site object.
 input CreateDockingStationSiteObjectInput {
   # An external provided uuid to re-identify the site object.
@@ -4180,11 +4571,10 @@ input ContextKeyValuePairInput {
 }
 
 input UpdateFeatureFlagInput {
-  name: String
   context: [ContextKeyValuePairInput!]
   ticket: String
   description: String
-  enabled: Boolean!
+  enabled: Boolean
 }
 
 # Payloads to create the description of a single camera
@@ -4454,6 +4844,7 @@ input StartVideoRecordingCommandInput {
 input RegisterSiteInput {
   name: String!
   location: String!
+  origin: SiteOriginInput
 }
 
 # The parameters to start an autonomous mission
@@ -4466,27 +4857,6 @@ input StartMissionExecutionInput {
 
   # Flag that marks whether the mission should be considered for our performance KPIs.
   kpiRelevantMission: Boolean
-}
-
-# Only for internal use. The parameters to start a mission from the robot.
-input StartMissionExecutionFromRobotInput {
-  # The id of the robot, which should execute the mission.
-  robotID: ID!
-
-  # The initial mission execution status.
-  status: MissionExecutionStatusEnum!
-
-  # The control mode the new mission has been started.
-  controlMode: ControlModeEnum!
-
-  # The current principal driver who started the mission.
-  principal: PrincipalDriverInput!
-}
-
-input PrincipalDriverInput {
-  userId: Float!
-  name: String!
-  email: String!
 }
 
 # Only for internal use. Parameters for the robot to updated a mission execution.
@@ -4513,10 +4883,10 @@ input CreateDiagnosticsInput {
   component: String
 
   # The diagnostic value.
-  value: DiagnosticsValueEnum!
+  value: DiagnosticsValueEnum! = UNKNOWN
 
   # The diagnostic message.
-  key: String
+  key: String! = "unknownError"
 }
 
 # Represents the set of all possible diagnostic values. It is a union of different types. Currently it consists of: MissionExecutionFailureEnum
@@ -4597,321 +4967,6 @@ input CreateMissionReportInput {
   missionDefinitionIds: [ID!] = []
 }
 
-# Parameters to create a new photo data payload.
-input CreatePhotoDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The timestamp the data has been generated.
-  timestamp: Timestamp!
-
-  # The uri to access the photo. (Currently only the filename is provided.)
-  uri: String!
-}
-
-# Parameters to create a payload producer.
-input CreateDataPayloadProducerInput {
-  # An dot seperated identifier that groups skills of the same provider. E.g.: com.energy-robotics
-  group: String!
-
-  # A human readable name of the skill that produced the payload.
-  name: String!
-}
-
-# Parameters to create a new audio data payload.
-input CreateAudioDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The start timestamp of the audio file.
-  fromTimestamp: Timestamp!
-
-  # The end timestamp of the audio file.
-  toTimestamp: Timestamp!
-
-  # The uri to access the audio file. (Currently only the filename is provided.)
-  uri: String!
-}
-
-# Parameters to create a new video data payload.
-input CreateVideoDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The start timestamp of the video.
-  fromTimestamp: Timestamp!
-
-  # The end timestamp of the video.
-  toTimestamp: Timestamp!
-
-  # The uri to access the video. (Currently only the filename is provided.)
-  uri: String!
-}
-
-# Parameters to create a new time series 1d data payload.
-input CreateTimeSeries1dDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The uri to access the json file containing the time series
-  uri: String!
-}
-
-# Parameters to create a new photo  overlay data payload.
-input CreatePhotoOverlayDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The timestamp the data has been generated.
-  timestamp: Timestamp!
-
-  # The uri to access the photo. (Currently only the filename is provided.)
-  uri: String!
-
-  # The uri to access the overlay. (Currently only the filename is provided.)
-  overlayUri: String!
-}
-
-# Parameters to create a new JSON data payload.
-input CreateJSONDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The JSON data structure.
-  jsonData: Json!
-
-  # Data accessors to highlight important fields in the jsonData field.
-  dataAccessors: [CreateJSONDataAccessorInput!]
-}
-
-# Parameters to create a new JSON data accessor
-input CreateJSONDataAccessorInput {
-  # A human readable name of the data field.
-  name: String!
-
-  # A key accessor in dot notation. (e.g. jsonData.subfield.subsubfield).
-  accessor: String!
-}
-
-# Parameters to create a new group data payload.
-input CreateGroupDataPayloadInput {
-  # An external provided uuid to re-identify the payload (e.g. to prevent duplicates).
-  key: String!
-
-  # The payload from which this payload has been derived from (e.g. a skill has performed on a payload with the parentPayloadKey to produce this payload.
-  parentPayloadKey: String
-
-  # The producer of this payload. Can be null for payloads which has been generated directly from the robot (e.g. images, videos, audios).
-  producer: CreateDataPayloadProducerInput
-
-  # A label provided by the skill provider which allows him/her to re-identify his/her payloads
-  dataLabel: String
-
-  # The id of the robot snapshot which has generated the payload.
-  robotNumber: Float!
-
-  # The timestamp the original payload has been recorded. This timestamp is propagated to child payloads and is used to assign the payload to mission reports. If a parentPayloadKey is provided, this field is ignored.
-  acquisitionTimestamp: Timestamp
-
-  # The point of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  pointOfInterestId: String
-
-  # The area of interest id, the data is recorded at. Please note that only a POI or an AOI can be provided at the same time.
-  areaOfInterestId: String
-
-  # Represents the POI name specified in the mission editor.
-  poiName: String
-
-  # Whether or not the data is synced from the robot to the cloud.
-  isSynced: Boolean
-
-  # Metadata associated with this data payload.
-  jsonMetaData: Json
-
-  # The is of the payloads which should be grouped together.
-  group: [String!]!
-}
-
 type Subscription {
   # @Private Subscribe to site updates.
   onSite(
@@ -4961,6 +5016,15 @@ type Subscription {
     # The id of the site the points of interest should requested from.
     siteId: String!
   ): PointOfInterestSubscriptionType!
+
+  # Subscribe to new recorded or updated data payloads of a robot.
+  onDataPayloadByRobot(
+    # The id of the robot the data payload should requested from.
+    robotId: String!
+
+    # Specify the payload types which should be considered. If this parameter is not set all types are considered.
+    types: [DataPayloadTypeEnum!]
+  ): DataPayloadSubscriptionType!
 
   # @Private Get updates for the site recordings for a robot.
   onSiteRecordingStatus(
@@ -5075,13 +5139,4 @@ type Subscription {
     # The id of the robot the mission reports should requested from.
     robotId: String!
   ): MissionReportSubscriptionType!
-
-  # Subscribe to new recorded or updated data payloads of a robot.
-  onDataPayloadByRobot(
-    # The id of the robot the data payload should requested from.
-    robotId: String!
-
-    # Specify the payload types which should be considered. If this parameter is not set all types are considered.
-    types: [DataPayloadTypeEnum!]
-  ): DataPayloadSubscriptionType!
 }
