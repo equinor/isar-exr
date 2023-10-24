@@ -61,6 +61,10 @@ class EnergyRoboticsApi:
         response_dict: dict[str, Any] = self.client.query(
             dsl_gql(current_mission_execution_query), params
         )
+
+        if response_dict["currentMissionExecution"] is None:
+            raise NoMissionRunningException
+
         step_status = ExrMissionStatus(
             response_dict["currentMissionExecution"]["status"]
         )
@@ -660,6 +664,43 @@ class EnergyRoboticsApi:
             )
 
         return response_dict["commitSiteChanges"]["id"]
+
+    def is_pipeline_completed(self, site_id: str) -> bool:
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        current_processing_pipeline: DSLQuery = DSLQuery(
+            self.schema.Query.currentSiteSnapshotHeadSelectionProcessingPipeline.args(
+                siteId=variable_definitions_graphql.siteId
+            ).select(
+                self.schema.ProcessingPipelineType.stages.select(
+                    self.schema.ProcessingPipelineStageType.state
+                )
+            )
+        )
+
+        current_processing_pipeline.variable_definitions = variable_definitions_graphql
+
+        params: dict = {"siteId": site_id}
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(current_processing_pipeline), params
+            )
+        except Exception as e:
+            message: str = "Could not get current processing pipeline"
+            self.logger.error(message)
+            raise RobotAPIException(
+                error_description=message,
+            )
+
+        if (
+            response_dict["currentSiteSnapshotHeadSelectionProcessingPipeline"][
+                "stages"
+            ][0]["state"]
+            == "COMPLETED"
+        ):
+            return True
+        return False
 
     def set_snapshot_as_head(self, snapshot_id: str, site_id: str) -> str:
         params: dict[str, Any] = {"siteId": site_id, "siteSnapshotId": snapshot_id}

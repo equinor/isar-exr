@@ -103,9 +103,13 @@ class Robot(RobotInterface):
                     poi_ids.append(poi_id)
 
         snapshot_id: str = self.api.commit_site_to_snapshot(stage_id=stage_id)
+
         self.api.set_snapshot_as_head(
             snapshot_id=snapshot_id, site_id=settings.ROBOT_EXR_SITE_ID
         )
+
+        while not self.api.is_pipeline_completed(site_id=settings.ROBOT_EXR_SITE_ID):
+            time.sleep(settings.API_SLEEP_TIME)
 
         mission_definition_id: str = self.api.create_mission_definition(
             site_id=settings.ROBOT_EXR_SITE_ID,

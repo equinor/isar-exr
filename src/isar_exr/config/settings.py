@@ -44,6 +44,9 @@ class Settings(BaseSettings):
         "../../../docs/schema.graphql"
     )
 
+    # API sleep time
+    API_SLEEP_TIME: int = Field(default=1)
+
     model_config = SettingsConfigDict(
         env_prefix="EXR_",
         env_file_encoding="utf-8",
