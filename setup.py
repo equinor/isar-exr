@@ -22,7 +22,14 @@ setup(
     package_dir={"": "src"},
     package_data={"isar_exr": []},
     include_package_data=True,
-    install_requires=["alitra", "isar", "gql[aiohttp]", "python-dotenv", "pydantic"],
+    install_requires=[
+        "alitra",
+        "isar",
+        "gql[aiohttp]",
+        "python-dotenv",
+        "pydantic",
+        "pydantic_settings>=2.0.3",
+    ],
     setup_requires=[
         "wheel",
     ],
