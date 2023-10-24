@@ -3,10 +3,18 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    def __init__(self) -> None:
+        try:
+            with pkg_resources.path(f"isar_exr.config", "settings.env") as path:
+                env_file_path = path
+        except ModuleNotFoundError:
+            env_file_path = None
+        super().__init__(_env_file=env_file_path)
+
     # The ID of the robot in the EXR database
     ROBOT_EXR_ID: str = Field(default="61a09ebc5f71911c10b463ce")
 
@@ -36,14 +44,11 @@ class Settings(BaseSettings):
         "../../../docs/schema.graphql"
     )
 
-    class Config:
-        with pkg_resources.path("isar_exr.config", "settings.env") as path:
-            package_path = path
-
-        env_prefix = "EXR_"
-        env_file = package_path
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_prefix="EXR_",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+    )
 
 
 load_dotenv()
