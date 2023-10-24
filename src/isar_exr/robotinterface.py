@@ -22,6 +22,7 @@ from robot_interface.models.exceptions.robot_exceptions import (
     RobotCommunicationException,
     RobotInitializeException,
     RobotMissionStatusException,
+    RobotInfeasibleStepException,
 )
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
@@ -48,13 +49,14 @@ from robot_interface.utilities.json_service import EnhancedJSONEncoder
 from isar_exr.api.energy_robotics_api import EnergyRoboticsApi
 from isar_exr.api.models.models import (
     Point3DInput,
-    PointOfInterestProducerInput,
-    PointOfInterestProducerTypeEnum,
+    PointOfInterestActionPhotoInput,
+    PointOfInterestActionVideoInput,
     PointOfInterestTypeEnum,
+    Pose3DInput,
     Pose3DStampedInput,
     QuaternionInput,
     RobotTypeEnum,
-    UpsertPointOfInterestInput,
+    AddPointOfInterestInput,
 )
 from isar_exr.config.settings import settings
 from isar_exr.models.exceptions import NoMissionRunningException
@@ -92,9 +94,11 @@ class Robot(RobotInterface):
         poi_ids: List[str] = []
         for task in mission.tasks:
             for step in task.steps:
+                if isinstance(step, DriveToPose):
+                    robot_pose: Pose = step.pose
                 if isinstance(step, InspectionStep):
-                    poi_id: str = self._upsert_and_add_poi(
-                        task=task, step=step, stage_id=stage_id
+                    poi_id: str = self._create_and_add_poi(
+                        task=task, step=step, robot_pose=robot_pose, stage_id=stage_id
                     )
                     poi_ids.append(poi_id)
 
@@ -111,10 +115,7 @@ class Robot(RobotInterface):
 
         for task in mission.tasks:
             for step in task.steps:
-                if isinstance(step, DriveToPose):
-                    self._add_waypoint_task_to_mission(
-                        mission_definition_id=mission_definition_id, step=step
-                    )
+                # TODO: Support task with only DriveToStep
                 if isinstance(step, InspectionStep):
                     self._add_point_of_interest_inspection_task_to_mission(
                         task_name=step.id,
@@ -240,17 +241,17 @@ class Robot(RobotInterface):
     def _create_video(self, step: Union[TakeVideo, TakeThermalVideo]):
         raise NotImplementedError
 
-    def _upsert_and_add_poi(self, task: Task, step: Step, stage_id: str) -> str:
+    def _create_and_add_poi(
+        self, task: Task, step: Step, robot_pose: Pose, stage_id: str
+    ) -> str:
         target: Position = self.transform.transform_position(
             positions=step.target,
             from_=step.target.frame,
             to_=Frame("robot"),
         )
-        pose: Pose3DStampedInput = Pose3DStampedInput(
-            timestamp=time.time(),
-            frameID="don't know",
+        pose: Pose3DInput = Pose3DInput(
             position=Point3DInput(x=target.x, y=target.y, z=target.z),
-            orientation=QuaternionInput(
+            orientation=QuaternionInput(  # Ask Energy Robotics what is this used for
                 x=0,
                 y=0,
                 z=0,
@@ -258,22 +259,57 @@ class Robot(RobotInterface):
             ),
         )
 
-        poi_producer: PointOfInterestProducerInput = PointOfInterestProducerInput(
-            type=PointOfInterestProducerTypeEnum.MANUAL_IMPORT,
-            robotNumber=1,
-            robotType=RobotTypeEnum.EXR2,
-        )
-        poi_input: UpsertPointOfInterestInput = UpsertPointOfInterestInput(
-            key=task.tag_id if task.tag_id else "default_poi",
-            name="insert_name_here",
-            type=PointOfInterestTypeEnum.GENERIC,
-            siteId=settings.ROBOT_EXR_SITE_ID,
-            pose=pose,
-            producer=poi_producer,
-            inspectionParameters={},
+        photo_input_pose: Pose3DInput = Pose3DInput(
+            position=Point3DInput(
+                x=robot_pose.position.x,
+                y=robot_pose.position.y,
+                z=robot_pose.position.z,
+            ),
+            orientation=QuaternionInput(
+                w=robot_pose.orientation.w,
+                x=robot_pose.orientation.x,
+                y=robot_pose.orientation.y,
+                z=robot_pose.orientation.z,
+            ),
         )
 
-        poi_id: str = self.api.upsert_point_of_interest(
+        add_point_of_interest_input: dict[str, PointOfInterestActionPhotoInput] = {
+            "name": step.id,
+            "customerTag": task.tag_id,
+            "frame": "map",
+            "type": PointOfInterestTypeEnum.GENERIC,
+            "site": settings.ROBOT_EXR_SITE_ID,
+            "pose": pose,
+        }
+
+        if isinstance(step, TakeImage):
+            photo_input: PointOfInterestActionPhotoInput = (
+                PointOfInterestActionPhotoInput(
+                    robotPose=photo_input_pose, sensor="inspection_cam_link"
+                )
+            )
+            add_point_of_interest_input["photoAction"] = photo_input
+
+        elif isinstance(step, TakeVideo):
+            video_input: PointOfInterestActionVideoInput = (
+                PointOfInterestActionVideoInput(
+                    robotPose=photo_input_pose,
+                    sensor="inspection_cam_link",
+                    duration=step.duration,
+                )
+            )
+            add_point_of_interest_input["videoAction"] = video_input
+
+        else:
+            raise RobotInfeasibleStepException(
+                error_description=f"Step of type {type(step)} not supported"
+            )
+
+        poi_input: AddPointOfInterestInput = AddPointOfInterestInput(
+            **add_point_of_interest_input
+        )
+
+        poi_id: str = self.api.create_point_of_interest(
             point_of_interest_input=poi_input
         )
 
@@ -289,7 +325,7 @@ class Robot(RobotInterface):
         )
         pose_3d_stamped: Pose3DStampedInput = Pose3DStampedInput(
             timestamp=time.time(),
-            frameID="don't know",
+            frameID="map",
             position=Point3DInput(
                 x=pose.position.x, y=pose.position.y, z=pose.position.z
             ),
