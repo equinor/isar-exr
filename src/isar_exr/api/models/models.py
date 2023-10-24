@@ -48,6 +48,7 @@ class PointOfInterestActionVideoInput(BaseModel):
 
 class AddPointOfInterestInput(BaseModel):
     name: str
+    customerTag: Optional[str] = None
     site: str
     frame: str
     type: PointOfInterestTypeEnum = Field(default=PointOfInterestTypeEnum.GENERIC)
