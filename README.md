@@ -11,6 +11,12 @@ Technically speaking, this package integrates to the API of [Energy Robotics](ht
 You need to have a user account on the Energy Robotics login portal which lets you create an API key.
 For authentication the email address of this user account is used as user name and the API key as password.
 
+### Contributing
+
+We welcome all kinds of contributions, including code, bug reports, issues, feature requests, and documentation. The
+preferred way of submitting a contribution is to either make an [issue](https://github.com/equinor/isar-exr/issues) on
+GitHub or by forking the project on GitHub and making a pull requests.
+
 ## Installation
 
 Clone and install in the repository root folder.
