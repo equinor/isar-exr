@@ -126,6 +126,34 @@ class EnergyRoboticsApi:
                 error_description=f"Invalid status after pausing mission: '{status}'"
             )
 
+    def get_point_of_interest_by_customer_tag(
+        self, customer_tag: str, site_id: str
+    ) -> str:
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        point_of_interest_query: DSLQuery = DSLQuery(
+            self.schema.Query.pointOfInterestByCustomerTag.args(
+                customerTag=variable_definitions_graphql.customerTag,
+                siteId=variable_definitions_graphql.siteId,
+            ).select(self.schema.PointOfInterestType.id)
+        )
+
+        point_of_interest_query.variable_definitions = variable_definitions_graphql
+
+        params: dict = {"customerTag": customer_tag, "siteId": site_id}
+
+        try:
+            response_dict: dict[str, Any] = self.client.query(
+                dsl_gql(point_of_interest_query), params
+            )
+        except Exception:
+            return None
+
+        if response_dict["pointOfInterestByCustomerTag"] is None:
+            raise None
+
+        return response_dict["pointOfInterestByCustomerTag"]["id"]
+
     def create_point_of_interest(
         self, point_of_interest_input: AddPointOfInterestInput
     ) -> str:

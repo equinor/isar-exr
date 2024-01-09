@@ -57,6 +57,11 @@ class AddPointOfInterestInput(BaseModel):
     videoAction: Optional[PointOfInterestActionVideoInput] = None
 
 
+class PointOfInterestByCustomerTag(BaseModel):
+    customerTag: str
+    siteId: str
+
+
 class RobotTypeEnum(str, Enum):
     SPOT: str = "SPOT"
     EXR2: str = "EXR2"
