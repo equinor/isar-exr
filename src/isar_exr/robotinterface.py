@@ -51,6 +51,7 @@ from isar_exr.api.models.models import (
     Point3DInput,
     PointOfInterestActionPhotoInput,
     PointOfInterestActionVideoInput,
+    PointOfInterestByCustomerTag,
     PointOfInterestTypeEnum,
     Pose3DInput,
     Pose3DStampedInput,
@@ -90,26 +91,43 @@ class Robot(RobotInterface):
         curent_stage_id = self.api.get_current_site_stage(settings.ROBOT_EXR_SITE_ID)
         if curent_stage_id is not None:
             self.api.discard_stage(stage_id=curent_stage_id)
-        stage_id: str = self.api.create_stage(site_id=settings.ROBOT_EXR_SITE_ID)
+        stage_id: str = self.api.create_stage(
+            site_id=settings.ROBOT_EXR_SITE_ID
+        )  # Do we need a new stage here?
+        updating_site = False
         poi_ids: List[str] = []
         for task in mission.tasks:
             for step in task.steps:
                 if isinstance(step, DriveToPose):
                     robot_pose: Pose = step.pose
                 if isinstance(step, InspectionStep):
-                    poi_id: str = self._create_and_add_poi(
-                        task=task, step=step, robot_pose=robot_pose, stage_id=stage_id
+                    existing_poi_id = self.api.get_point_of_interest_by_customer_tag(
+                        customer_tag=task.tag_id, site_id=settings.ROBOT_EXR_SITE_ID
                     )
-                    poi_ids.append(poi_id)
+                    if existing_poi_id == None:
+                        poi_id: str = self._create_and_add_poi(  # Here we should only create if it does not already exist
+                            task=task,
+                            step=step,
+                            robot_pose=robot_pose,
+                            stage_id=stage_id,
+                        )
+                        poi_ids.append(poi_id)
+                        updating_site = True
+                    else:
+                        poi_ids.append(existing_poi_id)
 
-        snapshot_id: str = self.api.commit_site_to_snapshot(stage_id=stage_id)
+        if updating_site:
+            # We should only do the following if we changed the site
+            snapshot_id: str = self.api.commit_site_to_snapshot(stage_id=stage_id)
 
-        self.api.set_snapshot_as_head(
-            snapshot_id=snapshot_id, site_id=settings.ROBOT_EXR_SITE_ID
-        )
+            self.api.set_snapshot_as_head(
+                snapshot_id=snapshot_id, site_id=settings.ROBOT_EXR_SITE_ID
+            )
 
-        while not self.api.is_pipeline_completed(site_id=settings.ROBOT_EXR_SITE_ID):
-            time.sleep(settings.API_SLEEP_TIME)
+            while not self.api.is_pipeline_completed(
+                site_id=settings.ROBOT_EXR_SITE_ID
+            ):
+                time.sleep(settings.API_SLEEP_TIME)
 
         mission_definition_id: str = self.api.create_mission_definition(
             site_id=settings.ROBOT_EXR_SITE_ID,
@@ -135,6 +153,12 @@ class Robot(RobotInterface):
         self.api.start_mission_execution(
             mission_definition_id=mission_definition_id, robot_id=settings.ROBOT_EXR_ID
         )
+
+        # TODO: maybe store current mission, so that we can interpret idle but with mission as not idle
+
+        time.sleep(
+            5
+        )  # Waits for mission to start in order to avoid returning Successful to ISAR
 
     def mission_status(self) -> MissionStatus:
         try:
@@ -278,7 +302,7 @@ class Robot(RobotInterface):
         )
 
         add_point_of_interest_input: dict[str, PointOfInterestActionPhotoInput] = {
-            "name": step.id,
+            "name": task.tag_id if task.tag_id != None else step.id,
             "customerTag": task.tag_id,
             "frame": "map",
             "type": PointOfInterestTypeEnum.GENERIC,
