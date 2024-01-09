@@ -776,12 +776,14 @@ class EnergyRoboticsApi:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(current_site_stage_query), params
             )
+
+            if response_dict["currentSiteStage"] is not None:
+                return response_dict["currentSiteStage"]["id"]
         except Exception as e:
             message: str = "Could not get current site stage"
             self.logger.error(message)
             raise RobotAPIException(
                 error_description=message,
             )
-        if response_dict["currentSiteStage"] is not None:
-            return response_dict["currentSiteStage"]["id"]
+
         return None
