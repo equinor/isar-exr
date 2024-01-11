@@ -167,7 +167,7 @@ class Robot(RobotInterface):
             # This is a temporary solution until we have mission status by mission id
             return MissionStatus.Successful
         except Exception:
-            message: str = "Could not get status of running mission"
+            message: str = "Could not get status of running mission\n"
             self.logger.error(message)
             raise RobotMissionStatusException(
                 error_description=message,
@@ -185,7 +185,7 @@ class Robot(RobotInterface):
         try:
             self.api.pause_current_mission(self.exr_robot_id)
         except Exception:
-            message: str = "Could not stop the running mission"
+            message: str = "Could not stop the running mission\n"
             self.logger.error(message)
             raise RobotCommunicationException(
                 error_description=message,
@@ -198,7 +198,7 @@ class Robot(RobotInterface):
         try:
             self.api.wake_up_robot(self.exr_robot_id)
         except Exception:
-            message: str = "Could not initialize robot"
+            message: str = "Could not initialize robot\n"
             self.logger.error(message)
             raise RobotInitializeException(
                 error_description=message,
@@ -242,6 +242,7 @@ class Robot(RobotInterface):
         return publisher_threads
 
     def robot_status(self) -> RobotStatus:
+        # TODO: check if robot is running a task, or check if it is awake?
         return RobotStatus.Available
 
     def _get_pose_telemetry(self, isar_id: str, robot_name: str) -> str:
@@ -253,10 +254,10 @@ class Robot(RobotInterface):
         )
         return json.dumps(pose_payload, cls=EnhancedJSONEncoder)
 
-    @staticmethod
-    def _get_battery_telemetry(isar_id: str, robot_name: str) -> str:
+    def _get_battery_telemetry(self, isar_id: str, robot_name: str) -> str:
+        battery_level = self.api.get_battery_level(settings.ROBOT_EXR_ID)
         battery_payload: TelemetryBatteryPayload = TelemetryBatteryPayload(
-            battery_level=55,
+            battery_level=battery_level,
             isar_id=isar_id,
             robot_name=robot_name,
             timestamp=datetime.datetime.now(),
