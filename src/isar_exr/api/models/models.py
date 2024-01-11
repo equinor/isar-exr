@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional
+from isar_exr.api.models.enums import ChargerType, ChargingState
 
 from pydantic import BaseModel, Field
 
@@ -91,3 +92,10 @@ class UpsertPointOfInterestInput(BaseModel):
     pose: Pose3DStampedInput
     producer: PointOfInterestProducerInput
     inspectionParameters: dict
+
+
+class BatteryStatusType(BaseModel):
+    percentage: float
+    chargingState: ChargingState
+    chargerType: ChargerType
+    chargingCurrent: float

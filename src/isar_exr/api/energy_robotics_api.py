@@ -19,6 +19,7 @@ from isar_exr.api.graphql_client import GraphqlClient
 from isar_exr.api.models.enums import AwakeStatus
 from isar_exr.api.models.models import (
     AddPointOfInterestInput,
+    BatteryStatusType,
     Pose3DStampedInput,
     UpsertPointOfInterestInput,
 )
@@ -501,6 +502,45 @@ class EnergyRoboticsApi:
         status: AwakeStatus = AwakeStatus(result["currentRobotStatus"]["awakeStatus"])
         success: bool = status in [AwakeStatus.Awake]
         return success
+
+    def get_battery_level(self, exr_robot_id: str) -> float:
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        check_battery_query: DSLQuery = DSLQuery(
+            self.schema.Query.currentRobotStatus.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.RobotStatusType.isConnected,
+                self.schema.RobotStatusType.batteryStatus.select(
+                    self.schema.BatteryStatusType.percentage
+                ),
+            )
+        )
+
+        check_battery_query.variable_definitions = variable_definitions_graphql
+
+        try:
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(check_battery_query), params
+            )
+        except Exception:
+            message: str = "Could not check robot battery level"
+            self.logger.error(message)
+            raise RobotMissionStatusException(
+                error_description=message,
+            )
+
+        if not result["currentRobotStatus"]["isConnected"]:
+            raise RobotMissionStatusException(
+                error_description="Robot is not connected",
+            )
+
+        battery_level: float = result["currentRobotStatus"]["batteryStatus"][
+            "percentage"
+        ]
+        return battery_level
 
     def create_mission_definition(
         self, site_id: str, mission_name: str, robot_id: str
