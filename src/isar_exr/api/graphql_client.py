@@ -3,12 +3,14 @@ from typing import Any, Dict
 
 from gql import Client
 from gql.dsl import DSLSchema
+from gql.transport.httpx import HTTPXTransport
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.exceptions import (
     TransportClosed,
     TransportProtocolError,
     TransportQueryError,
     TransportServerError,
+    TransportAlreadyConnected,
 )
 from graphql import DocumentNode, GraphQLError, GraphQLSchema, build_ast_schema, parse
 
@@ -22,9 +24,9 @@ class GraphqlClient:
         # in case of expired token
         self._reauthenticated: bool = False
         self.logger: Logger = getLogger("graphql_client")
-        self._initialize_client()
+        self._initialize_session()
 
-    def _initialize_client(self):
+    def _initialize_session(self) -> None:
         try:
             token: str = get_access_token()
         except Exception as e:
@@ -41,11 +43,12 @@ class GraphqlClient:
 
         schema: GraphQLSchema = build_ast_schema(document)
 
-        transport: AIOHTTPTransport = AIOHTTPTransport(
+        transport: HTTPXTransport = HTTPXTransport(
             url=settings.ROBOT_API_URL, headers=auth_header
         )
         self.client: Client = Client(transport=transport, schema=schema)
         self.schema: DSLSchema = DSLSchema(self.client.schema)
+        self.session = self.client.connect_sync()
 
     def query(
         self, query: DocumentNode, query_parameters: dict[str, Any]
@@ -60,7 +63,7 @@ class GraphqlClient:
         :raises Exception: Unknown error
         """
         try:
-            response: Dict[str, Any] = self.client.execute(query, query_parameters)
+            response: Dict[str, Any] = self.session.execute(query, query_parameters)
             return response
         except GraphQLError as e:
             self.logger.error(
@@ -75,7 +78,7 @@ class GraphqlClient:
                 raise
             else:
                 # The token might have expired, try again with a new token
-                self._initialize_client()
+                self._initialize_session()
                 self._reauthenticated = True
                 self.query(query=query, query_parameters=query_parameters)
         except TransportQueryError as e:
@@ -88,6 +91,9 @@ class GraphqlClient:
             raise
         except TransportServerError as e:
             self.logger.error(f"Error in Energy Robotics server: {e}")
+            raise
+        except TransportAlreadyConnected as e:
+            self.logger.error(f"The transport is already connected: {e}")
             raise
         except Exception as e:
             self.logger.error(f"Unknown error in GraphQL client: {e}")
