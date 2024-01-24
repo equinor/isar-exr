@@ -91,9 +91,7 @@ class Robot(RobotInterface):
         curent_stage_id = self.api.get_current_site_stage(settings.ROBOT_EXR_SITE_ID)
         if curent_stage_id is not None:
             self.api.discard_stage(stage_id=curent_stage_id)
-        stage_id: str = self.api.create_stage(
-            site_id=settings.ROBOT_EXR_SITE_ID
-        )  # Do we need a new stage here?
+        stage_id: str = self.api.create_stage(site_id=settings.ROBOT_EXR_SITE_ID)
         updating_site = False
         poi_ids: List[str] = []
         for task in mission.tasks:
