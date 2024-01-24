@@ -26,7 +26,7 @@ class GraphqlClient:
         self.logger: Logger = getLogger("graphql_client")
         self._initialize_session()
 
-    def _initialize_session(self) -> None:
+    def _get_updated_auth_header(self) -> Dict:
         try:
             token: str = get_access_token()
         except Exception as e:
@@ -35,13 +35,27 @@ class GraphqlClient:
         auth_header: dict = {
             "authorization": "Bearer " + token,
         }
+        return auth_header
+
+    def _refresh_session(self) -> None:
+        auth_header = self._get_updated_auth_header()
+        transport: HTTPXTransport = HTTPXTransport(
+            url=settings.ROBOT_API_URL, headers=auth_header
+        )
+        # self.session.transport = transport
+        schema: GraphQLSchema = build_ast_schema(self.document)
+        self.client: Client = Client(transport=transport, schema=schema)
+        self.session = self.client.connect_sync()
+
+    def _initialize_session(self) -> None:
+        auth_header = self._get_updated_auth_header()
 
         # Loading schema from file is recommended,
         # ref https://github.com/graphql-python/gql/issues/331
         with open(settings.PATH_TO_GRAPHQL_SCHEMA, encoding="utf-8") as source:
-            document = parse(source.read())
+            self.document = parse(source.read())
 
-        schema: GraphQLSchema = build_ast_schema(document)
+        schema: GraphQLSchema = build_ast_schema(self.document)
 
         transport: HTTPXTransport = HTTPXTransport(
             url=settings.ROBOT_API_URL, headers=auth_header
@@ -73,14 +87,14 @@ class GraphqlClient:
         except TransportProtocolError as e:
             if self._reauthenticated:
                 self.logger.error(
-                    "Transport protocol error - Error in configuration of GraphQL client"
+                    "Transport protocol error - Error in configuration of GraphQL client even after reauthentication"
                 )
                 raise
             else:
                 # The token might have expired, try again with a new token
-                self._initialize_session()
+                self._refresh_session()
                 self._reauthenticated = True
-                self.query(query=query, query_parameters=query_parameters)
+                return self.query(query=query, query_parameters=query_parameters)
         except TransportQueryError as e:
             self.logger.error(
                 f"The Energy Robotics server returned an error: {e.errors}"
@@ -90,14 +104,25 @@ class GraphqlClient:
             self.logger.error("The connection to the GraphQL endpoint is closed")
             raise
         except TransportServerError as e:
-            self.logger.error(f"Error in Energy Robotics server: {e}")
-            raise
+            if e.code == 302:
+                if self._reauthenticated:
+                    self.logger.error(
+                        "Transport server error - Error in Energy Robotics server even after reauthentication"
+                    )
+                    raise
+                else:
+                    self._refresh_session()
+                    self._reauthenticated = True
+                    return self.query(query=query, query_parameters=query_parameters)
+            else:
+                self.logger.error(f"Error in Energy Robotics server: {e}")
+                raise
         except TransportAlreadyConnected as e:
             self.logger.error(f"The transport is already connected: {e}")
             raise
         except Exception as e:
+            # TODO: 'The read operation timed out' happens even though nothing is happening on the robot
             self.logger.error(f"Unknown error in GraphQL client: {e}")
             raise
         finally:
             self._reauthenticated = False
-        return {}

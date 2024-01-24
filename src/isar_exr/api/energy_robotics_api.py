@@ -525,7 +525,7 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(check_battery_query), params
             )
-        except Exception:
+        except Exception as e:
             message: str = "Could not check robot battery level"
             self.logger.error(message)
             raise RobotMissionStatusException(
