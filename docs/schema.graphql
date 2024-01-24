@@ -24,14 +24,20 @@ interface AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 }
 
 # Represents the type of an payload recorded by a robot.
@@ -126,6 +132,42 @@ enum MissionTaskDefinitionTypeEnum {
   WAYPOINT
 }
 
+# Base interface for MissionDefinition, with shared properties.
+interface BaseMissionDefinitionLeanType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+}
+
+# The different mission definition types.
+enum MissionDefinitionTypeEnum {
+  # Mission definition is using an imported mission file.
+  IMPORTED
+
+  # Mission definition used for docking.
+  DOCKING
+
+  # Mission definition used for undocking.
+  UNDOCKING
+
+  # Mission definition was created by the click and inspect feature.
+  CLICK_AND_INSPECT
+
+  # Mission definition was created for an Anymal robot.
+  ANYMAL
+
+  # Mission definition was created by the teach and repeat feature.
+  TEACH_AND_REPEAT
+}
+
 # Represents a snapshot of a mission definition
 interface AbstractMissionDefinitionSnapshotType {
   # The id of the snapshot
@@ -142,20 +184,6 @@ interface AbstractMissionDefinitionSnapshotType {
 
   # Whether or not this mission was a dynamic mission. Dynamic missions are generated to execute a single task on depend.
   isDynamicMission: Boolean!
-}
-
-# The different mission definition types.
-enum MissionDefinitionTypeEnum {
-  # Mission definition is using an imported mission file.
-  IMPORTED
-  DOCKING
-  UNDOCKING
-
-  # Mission definition was created by the click and inspect feature.
-  CLICK_AND_INSPECT
-
-  # Mission definition was created by the teach and repeat feature.
-  TEACH_AND_REPEAT
 }
 
 # Represents an area of interest that is or was located on a customer site. It is currently considered for undirected, omni-directional measurements only.
@@ -229,14 +257,20 @@ type PhotoDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The timestamp the data has been generated.
   timestamp: Timestamp!
@@ -271,14 +305,20 @@ type AudioDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The start timestamp of the audio file.
   fromTimestamp: Timestamp!
@@ -316,14 +356,20 @@ type VideoDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The start timestamp of the video file.
   fromTimestamp: Timestamp!
@@ -376,14 +422,20 @@ type TimeSeries1DDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The name of the data series.
   name: String!
@@ -421,14 +473,20 @@ type PhotoOverlayDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The timestamp the image has been created.
   timestamp: Timestamp!
@@ -475,14 +533,20 @@ type JSONDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The JSON data structure.
   jsonData: Json!
@@ -517,14 +581,20 @@ type GroupDataPayloadType implements AbstractDataPayloadType {
       reason: "[03-05-2023] area of interest was never used and will not be implemented. For points of interest use the 'pointOfInterest' field instead."
     )
 
-  #
+  # The point of interest were the data payload was recorded
   pointOfInterest: PointOfInterestType
+
+  # The site were the data payload was recorded
+  site: SiteType!
 
   # Represents the POI name specified in the mission editor.
   poiName: String
 
   # Whether or not the data is synced from the robot to the cloud.
   isSynced: Boolean!
+
+  # The timestamp when the data has been recorded.
+  acquisitionTimestamp: Timestamp!
 
   # The data payloads of this group.
   group: [AbstractDataPayloadType!]!
@@ -835,6 +905,21 @@ type RegionOfInterestLimitType {
   height: Float!
 }
 
+# Represents camera stream definition
+type CameraStreamType {
+  # The unique identifier of the camera stream
+  id: ID!
+
+  # The camera stream key
+  key: String!
+
+  # The camera stream webrtc topic
+  webRtcTopic: String!
+
+  # The camera stream name
+  name: String!
+}
+
 # Describes the properties of a single camera.
 type CameraDescriptionType {
   # The unique identifier of the camera.
@@ -860,6 +945,9 @@ type CameraDescriptionType {
 
   # The limits of the region of interest selection.
   maximumRegionOfInterest: RegionOfInterestLimitType
+
+  # All streams provided by a camera
+  cameraStreams: [CameraStreamType!]
 }
 
 # Represents the camera configuration of a robot.
@@ -1028,6 +1116,9 @@ type RobotType {
 
   # The deployment site of this robot.
   site: SiteType
+
+  # The turn server used for webrtc communication
+  turnServerIp: String!
 }
 
 # Represents the subscription type of a robot
@@ -1112,6 +1203,12 @@ type SiteSnapshotType {
 
   # The site number is unique number for each site.
   number: Int!
+
+  # The number of point of interests (POIs) in this snapshot.
+  countPointOfInterest: Int!
+
+  # The number of site objects in this snapshot.
+  countSiteObjects: Int!
 
   # The key of the map of this snapshot
   mapKey: String!
@@ -1265,6 +1362,40 @@ type ProcessingPipelineStatusType {
 type LegacySiteSnapshotHeadSelectionProcessingRequestType {
   jobId: ID!
   snapshot: SiteSnapshotType!
+  robotId: String!
+}
+
+# Represents a zone on a site
+type ZoneType {
+  # The unique identifier of the zone.
+  id: ID!
+
+  # The type of the zone.
+  type: ZoneTypeEnum!
+
+  # The points representing the zone
+  points: [Point3DType!]!
+}
+
+# The type of a zone
+enum ZoneTypeEnum {
+  # A zone a robot is not allowed to enter
+  NO_GO
+
+  # A zone a robot is allowed to enter
+  GO
+}
+
+# Represents the subscription type for a zone.
+type ZoneSubscriptionType {
+  # The timestamp of this subscription message.
+  timestamp: Timestamp!
+
+  # The operation which has been applied to the zone.
+  operation: DataOperationTypeEnum!
+
+  # The zone if only one is affected.
+  zone: ZoneType
 }
 
 # Represents the subscription type for a sites.
@@ -1285,6 +1416,42 @@ type UserType {
   name: String!
   email: String!
   isEngineer: Boolean!
+}
+
+# The representation of the parsed value of the current service version
+type VersionInfoType {
+  # The service type
+  serviceType: ServiceTypeEnum!
+
+  # The major version
+  majorVersion: Int!
+
+  # The minor version
+  minorVersion: Int!
+
+  # The patch version
+  patchVersion: Int!
+
+  # The pre-parsed string of the version
+  fullVersionString: String
+}
+
+# The different services.
+enum ServiceTypeEnum {
+  # The WebAPI
+  WEB_API
+
+  # The Onboard Software
+  ONBOARD
+
+  # The Firmware
+  FIRMWARE
+
+  # The Ccapi
+  CCAPI
+
+  # Unknown
+  UNRECOGNIZED
 }
 
 # Represents a site recording performed by a robot
@@ -1376,36 +1543,6 @@ enum SiteRecordingControlActionEnum {
   DECLINE
 }
 
-# Represents a ICE (Interactive Connectivity Establishment) configuration which is used to establish a WebRTC connection.
-type IceCandidateType {
-  # A DOMString describing the properties of the candidate.
-  candidate: IceCandidate!
-
-  # A DOMString which uniquely identifies the source media component from which the candidate draws data, or null if no such association exists for the candidate.
-  sdpMid: String!
-
-  # A number containing a 0-based index into the set of m-lines providing media descriptions, indicating which media source is associated with the candidate, or null if no such association is available.
-  sdpMLineIndex: Int!
-}
-
-# Represents an ICECandidate status update which provides the remote generated candidates.
-type IceCandidatesStatusType {
-  # The timestamp of this ice candidates status.
-  timestamp: Timestamp!
-
-  # The list of generated remote ICECandidates.
-  iceCandidates: [IceCandidateType!]
-}
-
-# Represents the response of the WebRTC handshake.
-type WebRtcHandshakeResponseType {
-  # The id of the webrtc connection
-  id: IceCandidate!
-
-  # The SDP answer of the remote WebRTC peer.
-  sdp: Sdp!
-}
-
 # Represents execution details of a robot command.
 type RobotCommandExecutionType {
   # The unique identifier of the robot command execution.
@@ -1446,6 +1583,30 @@ enum RobotCommandOperationCodeEnum {
 
   # Compatibility: all robots. Stop a running video recording of a provided camera. The id of the camera is considered as the context
   OP_CODE_STOP_VIDEO_RECORDING
+
+  # Compatibility: Drones, robots with a closable docking station. Open/Close the docking station.
+  OP_CODE_DOCKING_STATION_OPEN
+
+  # Compatibility: Drones. Let a drone takeoff.
+  OP_CODE_DRONE_TAKEOFF
+
+  # Compatibility: Drones. Let a drone land.
+  OP_CODE_DRONE_LAND
+
+  # Compatibility: Drones. Let a drone return to its docking station.
+  OP_CODE_DRONE_RETURN_TO_HOME
+
+  # Compatibility: Drones. Download the high resolution images from the drone.
+  OP_CODE_HIGH_RES_IMAGE_TRANSFER
+
+  # Compatibility: Drones. Turn the drone charger on/off.
+  OP_CODE_DRONE_CHARGER_ON
+
+  # Compatibility: Drones. Turn the drone on/off.
+  OP_CODE_DRONE_ON
+
+  # Compatibility: Drones. Turn the drones' remote control on/off.
+  OP_CODE_DRONE_REMOTE_CONTROL_ON
 }
 
 # Represents the different states of a robot command execution. A command is always in one of these states.
@@ -1496,6 +1657,36 @@ type RobotCommandExecutionRequestType {
   args: Json
 }
 
+# Represents a ICE (Interactive Connectivity Establishment) configuration which is used to establish a WebRTC connection.
+type IceCandidateType {
+  # A DOMString describing the properties of the candidate.
+  candidate: IceCandidate!
+
+  # A DOMString which uniquely identifies the source media component from which the candidate draws data, or null if no such association exists for the candidate.
+  sdpMid: String!
+
+  # A number containing a 0-based index into the set of m-lines providing media descriptions, indicating which media source is associated with the candidate, or null if no such association is available.
+  sdpMLineIndex: Int!
+}
+
+# Represents an ICECandidate status update which provides the remote generated candidates.
+type IceCandidatesStatusType {
+  # The timestamp of this ice candidates status.
+  timestamp: Timestamp!
+
+  # The list of generated remote ICECandidates.
+  iceCandidates: [IceCandidateType!]
+}
+
+# Represents the response of the WebRTC handshake.
+type WebRtcHandshakeResponseType {
+  # The id of the webrtc connection
+  id: IceCandidate!
+
+  # The SDP answer of the remote WebRTC peer.
+  sdp: Sdp!
+}
+
 # A unique person (either ER or customer) who currently has the right to drive the robot manually or launch autonomous missions. Multiple principal drivers are not allowed, even though multiple people can have “driver” access rights.
 type PrincipalDriverType {
   # The userId of the principal driver
@@ -1534,6 +1725,15 @@ type PrincipalDriverTypePageInfo {
   endCursor: String
   hasPreviousPage: Boolean!
   hasNextPage: Boolean!
+}
+
+# Represents the status of the principal driver of a robot.
+type PrincipalDriverStatusType {
+  # The timestamp of this principal driver status.
+  timestamp: Timestamp!
+
+  # The current principal driver.
+  principal: PrincipalDriverType
 }
 
 # Robot battery type contains the statuses related to the battery.
@@ -1657,6 +1857,18 @@ type RobotStatusType {
 
   # Indicate whether or not the robot is in the docking station.
   isDocking: Boolean
+
+  # Indicate whether or not the drone is connected to the docking station.
+  droneConnected: Boolean
+
+  # Indicate whether or not the remote control is connected to the docking station.
+  remoteControlConnected: Boolean
+
+  # Indicate if its raining.
+  raining: Boolean
+
+  # Indicate if the robot has a valid localization.
+  localizationValid: Boolean
 }
 
 # Represents the sleep status of the robot. It consists of two primary states: AWAKE and ASLEEP. The transitions between the two are usually not applied instantaneously. During this time, the sleep state is in an intermediate state.
@@ -1681,15 +1893,6 @@ type StatusPerRobotType {
 
   # The status of the robot.
   status: RobotStatusType!
-}
-
-# Represents the status of the principal driver of a robot.
-type PrincipalDriverStatusType {
-  # The timestamp of this principal driver status.
-  timestamp: Timestamp!
-
-  # The current principal driver.
-  principal: PrincipalDriverType
 }
 
 # Represents a grid map of singed 8 bit integer values.
@@ -1821,90 +2024,6 @@ type WaypointTaskDefinitionType implements AbstractMissionTaskDefinitionType {
   waypoint: WaypointType
 }
 
-# Represents the required configuration of a robot to execute a specific mission.
-type RequiredRobotConfigType {
-  # Force this mission to be only available for a specific robot.
-  robotId: String
-}
-
-# Contains the path relevant properties of a mission definition.
-type MissionDefinitionPathDataType {
-  # The full planned path of this mission.
-  fullPath: [Pose3DStampedType!]!
-
-  # Whether or not the mission is still processed. Use subscription to be notified about changes or query the mission later again.
-  isProcessing: Boolean!
-
-  # The id of the tasks which are still processing.
-  tasksInProgress: [String!]!
-    @deprecated(
-      reason: "[25.05.2023] will no longer be supported. Processing procedure changed."
-    )
-}
-
-# Represents the definition of a mission as a result of the mission planning. (Not to be confused with the MissionExecution which represents a specific execution of a MissionDefinition by a specific robot)
-type MissionDefinitionType {
-  # The unique identifier of the mission definition.
-  id: ID!
-
-  # A human-readable name of the mission task.
-  name: String!
-
-  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
-  isDynamicMission: Boolean!
-
-  # The site of the mission.
-  site: SiteType!
-
-  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
-  legacyMissionDefinitionId: String
-    @deprecated(
-      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
-    )
-
-  # The list of mission tasks. If 'legacyMissionDefinitionId' is set, this list will be empty.
-  tasks: [AbstractMissionTaskDefinitionType!]!
-
-  # The path details of the mission.
-  path: MissionDefinitionPathDataType
-
-  # The type of the mission.
-  type: MissionDefinitionTypeEnum
-
-  # The name or path of the imported file
-  filename: String
-
-  # Defines the required robot configuration to execute this mission definition.
-  requiredRobotConfig: RequiredRobotConfigType
-}
-
-# Subset of the mission definition type. It does not include large/computational expensive properties like 'tasks' and 'fullPath'. In order to retrieve this data query the specific mission definition explicitly.
-type MissionDefinitionsType {
-  # The unique identifier of the mission definition.
-  id: ID!
-
-  # A human-readable name of the mission task.
-  name: String!
-
-  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
-  isDynamicMission: Boolean!
-
-  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
-  legacyMissionDefinitionId: String
-    @deprecated(
-      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
-    )
-
-  # The type of the mission.
-  type: MissionDefinitionTypeEnum
-
-  # The name or path of the imported file
-  filename: String
-
-  # Defines the required robot configuration to execute this mission definition.
-  requiredRobotConfig: RequiredRobotConfigType
-}
-
 type RosStampType {
   secs: Float!
   nsecs: Float!
@@ -1948,6 +2067,317 @@ type MissionRoadmapType {
 
   # The list of edges in this roadmap
   roadmap_edges: [MissionRoadmapEdgeType!]!
+}
+
+# Represents the required configuration of a robot to execute a specific mission.
+type RequiredRobotConfigType {
+  # Force this mission to be only available for a specific robot.
+  robotId: String
+}
+
+# Contains the path relevant properties of a mission definition.
+type MissionDefinitionPathDataType {
+  # The full planned path of this mission.
+  fullPath: [Pose3DStampedType!]!
+
+  # Whether or not the mission is still processed. Use subscription to be notified about changes or query the mission later again.
+  isProcessing: Boolean!
+
+  # The id of the tasks which are still processing.
+  tasksInProgress: [String!]!
+    @deprecated(
+      reason: "[25.05.2023] will no longer be supported. Processing procedure changed."
+    )
+}
+
+# Represents the mission definition of an Anymal.
+type AnymalMissionDefinitionDetailType implements BaseMissionDefinitionDetailType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+  tasks: [AbstractMissionTaskDefinitionType!]!
+
+  # The id of the mission known by the robot.
+  externalMissionId: String!
+}
+
+# Base interface for MissionDefinition, with shared properties.
+interface BaseMissionDefinitionDetailType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+  tasks: [AbstractMissionTaskDefinitionType!]!
+}
+
+# Represents the mission definition of a robot using imported files.
+type ImportedMissionDefinitionDetailType implements BaseMissionDefinitionDetailType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+  tasks: [AbstractMissionTaskDefinitionType!]!
+
+  # The name or path of the imported file
+  filename: String!
+}
+
+# Represents the mission definition of a legacy mission.
+type LegacyMissionDefinitionDetailType implements BaseMissionDefinitionDetailType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+  tasks: [AbstractMissionTaskDefinitionType!]!
+
+  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
+  legacyMissionDefinitionId: String!
+    @deprecated(
+      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
+    )
+}
+
+# Represents the mission definition of a click & inspect mission.
+type ClickInspectMissionDefinitionDetailType implements BaseMissionDefinitionDetailType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+
+  # The list of mission tasks. If 'legacyMissionDefinitionId' is set, this list will be empty.
+  tasks: [AbstractMissionTaskDefinitionType!]!
+
+  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+}
+
+type BaseMissionDefinitionsLeanType {
+  page: BaseMissionDefinitionLeanTypeConnection!
+  pageData: PageDataType
+}
+
+type BaseMissionDefinitionLeanTypeConnection {
+  edges: [BaseMissionDefinitionLeanTypeEdge!]
+  pageInfo: BaseMissionDefinitionLeanTypePageInfo
+}
+
+type BaseMissionDefinitionLeanTypeEdge {
+  cursor: String
+  node: BaseMissionDefinitionLeanType
+}
+
+type BaseMissionDefinitionLeanTypePageInfo {
+  startCursor: String
+  endCursor: String
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+}
+
+# Represents the mission definition of an Anymal.
+type AnymalMissionDefinitionType implements BaseMissionDefinitionLeanType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The id of the mission known by the robot.
+  externalMissionId: String!
+}
+
+# Represents the mission definition of a robot using imported files.
+type ImportedMissionDefinitionType implements BaseMissionDefinitionLeanType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The name or path of the imported file
+  filename: String!
+}
+
+# Represents the mission definition of a legacy mission.
+type LegacyMissionDefinitionType implements BaseMissionDefinitionLeanType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+
+  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
+  legacyMissionDefinitionId: String!
+    @deprecated(
+      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
+    )
+}
+
+# Represents the mission definition of a click & inspect mission.
+type ClickInspectMissionDefinitionType implements BaseMissionDefinitionLeanType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum!
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+}
+
+# Represents the definition of a mission as a result of the mission planning. (Not to be confused with the MissionExecution which represents a specific execution of a MissionDefinition by a specific robot)
+type MissionDefinitionType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+
+  # The site of the mission.
+  site: SiteType!
+
+  # The id of the mission known by the robot.
+  externalMissionId: String
+
+  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
+  legacyMissionDefinitionId: String
+    @deprecated(
+      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
+    )
+
+  # The list of mission tasks. If 'legacyMissionDefinitionId' is set, this list will be empty.
+  tasks: [AbstractMissionTaskDefinitionType!]!
+
+  # The path details of the mission.
+  path: MissionDefinitionPathDataType
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum
+
+  # The name or path of the imported file
+  filename: String
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
+}
+
+# Subset of the mission definition type. It does not include large/computational expensive properties like 'tasks' and 'fullPath'. In order to retrieve this data query the specific mission definition explicitly.
+type MissionDefinitionsType {
+  # The unique identifier of the mission definition.
+  id: ID!
+
+  # A human-readable name of the mission task.
+  name: String!
+
+  # Whether or not this mission is a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+
+  # The id of the mission known by the robot.
+  externalMissionId: String
+
+  # The legacy mission definition id. Don't use it for mission execution requests!. Use "id" field instead.
+  legacyMissionDefinitionId: String
+    @deprecated(
+      reason: "This field is only available to keep compatibility with a legacy system. It will be removed in the future."
+    )
+
+  # The type of the mission.
+  type: MissionDefinitionTypeEnum
+
+  # The name or path of the imported file
+  filename: String
+
+  # Defines the required robot configuration to execute this mission definition.
+  requiredRobotConfig: RequiredRobotConfigType
 }
 
 # Represents the subscription type for a mission definition.
@@ -2275,6 +2705,9 @@ enum MissionExecutionControlActionEnum {
   # Represents a request to pause a mission.
   PAUSE
 
+  # Represents a request to reset a mission.
+  RESET
+
   # Represents a request to set the next executed task to a provided one.
   GO_TO_TASK
 }
@@ -2289,6 +2722,9 @@ enum MissionExecutionStatusEnum {
 
   # The mission execution is "RESUME_REQUESTED" if an request has been sent to the robot to resume the mission.
   RESUME_REQUESTED
+
+  # The mission execution is "RESET_REQUESTED" if an request has been sent to the robot to reset the mission.
+  RESET_REQUESTED
 
   # The mission execution is "GO_TO_TASK_REQUESTED" if an request has been sent to the robot to go to a desired task.
   GO_TO_TASK_REQUESTED
@@ -2417,6 +2853,15 @@ type TrajectorySubscriptionType {
   trajectory: [Pose3DStampedType!]!
 }
 
+# Represents the preview of a mission execution for a specific robot and mission definition
+type MissionExecutionPreviewType {
+  # The mission definition which has been selected.
+  missionDefinition: MissionDefinitionType
+
+  # The path preview
+  path: [Pose3DStampedType!]!
+}
+
 # Represents the snapshot of a mission execution.
 type MissionExecutionSnapshotType {
   # The unique identifier of the site.
@@ -2502,6 +2947,63 @@ type FileImportMissionDefinitionSnapshotType implements AbstractMissionDefinitio
 
   # The name or path of the imported file
   filename: String!
+}
+
+# A snapshot of an anymal mission
+type AnymalMissionDefinitionSnapshotType implements AbstractMissionDefinitionSnapshotType {
+  # The id of the snapshot
+  id: ID!
+
+  # The timestamp of the snapshot
+  timestamp: Timestamp!
+
+  # The human-readable name of the mission definition at the time of the snapshot.
+  name: String!
+
+  # The type of the mission definition. Depending on the type additional fields might be available.
+  type: MissionDefinitionTypeEnum!
+
+  # Whether or not this mission was a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+
+  # The id of the mission known by the robot
+  externalMissionId: String!
+}
+
+# A snapshot of a docking mission
+type DockingMissionDefinitionSnapshotType implements AbstractMissionDefinitionSnapshotType {
+  # The id of the snapshot
+  id: ID!
+
+  # The timestamp of the snapshot
+  timestamp: Timestamp!
+
+  # The human-readable name of the mission definition at the time of the snapshot.
+  name: String!
+
+  # The type of the mission definition. Depending on the type additional fields might be available.
+  type: MissionDefinitionTypeEnum!
+
+  # Whether or not this mission was a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
+}
+
+# A snapshot of a undocking mission
+type UndockingMissionDefinitionSnapshotType implements AbstractMissionDefinitionSnapshotType {
+  # The id of the snapshot
+  id: ID!
+
+  # The timestamp of the snapshot
+  timestamp: Timestamp!
+
+  # The human-readable name of the mission definition at the time of the snapshot.
+  name: String!
+
+  # The type of the mission definition. Depending on the type additional fields might be available.
+  type: MissionDefinitionTypeEnum!
+
+  # Whether or not this mission was a dynamic mission. Dynamic missions are generated to execute a single task on depend.
+  isDynamicMission: Boolean!
 }
 
 # A mission report holds all the data of an particular mission execution (The time between undocking and docking of the robot.). The report has references to all inspection data recorded during the mission. It also stores metadata from the actual execution.
@@ -2672,6 +3174,9 @@ type PrivateFeatureFlagType {
   ticket: String
 }
 
+# Represents no return value for mutations.
+scalar Void
+
 # A field whose value can accept any string except empty ones. It will trim any additional white space before validation.
 scalar NonEmptyString
 
@@ -2763,8 +3268,14 @@ type Query {
     orderByTimestamp: OrderTypeEnum! = DESCENDING
 
     # The pagination parameters.
-    filter: ConnectionInput
+    filter: ConnectionInput = { first: 10 }
   ): SiteSnapshotsType!
+
+  # @Private Get the site snapshot by id
+  siteSnapshot(
+    # The id of the siteSnapshot
+    siteSnapshotId: String!
+  ): SiteSnapshotType!
 
   # @Private Get the current head snapshot of a site. The head is the snapshot the current site configuration is based on
   currentSiteSnapshotHead(
@@ -2820,7 +3331,7 @@ type Query {
     pointOfInterestId: String!
 
     # The pagination parameters.
-    filter: ConnectionInput
+    filter: ConnectionInput = { first: 10 }
   ): AbstractDataPayloadsType!
 
   # Find a specific payload.
@@ -2853,6 +3364,18 @@ type Query {
     key: String!
   ): AbstractSiteObjectType!
 
+  # @Private Request zones of a site.
+  zones(
+    # The ID of the site.
+    siteId: String!
+  ): [ZoneType!]!
+
+  # @Private Request a specific zone.
+  zone(
+    # The id of the zone
+    id: String!
+  ): ZoneType!
+
   # Request the current user.
   currentUser: UserType!
 
@@ -2862,6 +3385,12 @@ type Query {
   # @Internal Get a list of all the feature-flags including private data
   getAllFeatureFlagsPrivate: [PrivateFeatureFlagType!]!
 
+  # @Private
+  serviceVersions(
+    #  The id of the requested robot.
+    robotId: String!
+  ): [VersionInfoType!]!
+
   # Request all available robot urdfs of the requesting user.
   robotURDFs: [Urdf!]!
     @deprecated(reason: "[10.11.2022] unify naming  Use 'robotUrdfs' instead")
@@ -2869,13 +3398,25 @@ type Query {
   # Request all available robot urdfs of the requesting user.
   robotUrdfs: [Urdf!]!
 
-  # @Private Request poi json data
-  pointOfInterestJsonDataByKey(
+  # @Private Request all poi json data
+  pointOfInterestJsonDataByPoiKey(
+    # The id of the site of this poi data
+    siteId: String!
+
+    # The key of the point of interest.
+    pointOfInterestKey: String!
+  ): Json
+
+  # @Private Request skill poi json data
+  pointOfInterestJsonDataByAnnotation(
+    # The id of the site of this poi data
+    siteId: String!
+
     # The key of the point of interest.
     pointOfInterestKey: String!
 
-    # The id of the site of this poi data
-    siteId: String!
+    # The key of the annotation ('manometer' or 'annotations')
+    annotationKey: NonEmptyString!
   ): Json
 
   # @Private Get a current site recording by robotId if available
@@ -2890,14 +3431,32 @@ type Query {
     siteId: String!
   ): SiteRecordingType
 
+  # Get to the latest robot status for a given robot. In order to receive status updates subscribe to "onRobotStatus".
+  currentRobotStatus(
+    # The id of the robot the status should requested from.
+    robotID: String!
+  ): RobotStatusType!
+
+  # Get to the latest robot statuses for a selection of robots. In order to receive status updates subscribe to "onRobotStatuses".
+  currentRobotStatuses(
+    # The ids of the robots the status should requested from.
+    robotIDs: [String!]!
+  ): [StatusPerRobotType!]!
+
+  # Get to the latest robot statuses for all accessible robots from a site. In order to receive status updates subscribe to "onRobotStatusesPerSite".
+  currentRobotStatusesPerSite(
+    # The id of the site the current status should requested from.
+    siteID: String!
+  ): [StatusPerRobotType!]!
+
   # @Internal Get all principal drivers for a robot ordered by time in descending order.
   principalDrivers(
     # The pagination parameters.
-    filter: ConnectionInput
+    filter: ConnectionInput!
 
     # The id of the robot.
     robotId: String!
-  ): PrincipalDriversType
+  ): PrincipalDriversType!
 
   # @Private Get the current principal driver for a robot.
   currentPrincipalDriver(
@@ -2920,23 +3479,29 @@ type Query {
     robotId: String!
   ): Boolean!
 
-  # Get to the latest robot status for a given robot. In order to receive status updates subscribe to "onRobotStatus".
-  currentRobotStatus(
-    # The id of the robot the status should requested from.
-    robotID: String!
-  ): RobotStatusType!
+  # Request the list of mission definitions
+  missionDefinitionsOverviewBySite(
+    # Specify from which site the mission definitions should be requested.
+    siteId: String!
 
-  # Get to the latest robot statuses for a selection of robots. In order to receive status updates subscribe to "onRobotStatuses".
-  currentRobotStatuses(
-    # The ids of the robots the status should requested from.
-    robotIDs: [String!]!
-  ): [StatusPerRobotType!]!
+    # Set the pagination for the query.
+    pagination: ConnectionInput!
 
-  # Get to the latest robot statuses for all accessible robots from a site. In order to receive status updates subscribe to "onRobotStatusesPerSite".
-  currentRobotStatusesPerSite(
-    # The id of the site the current status should requested from.
-    siteID: String!
-  ): [StatusPerRobotType!]!
+    # Set the sorting for the query.
+    sort: QueryMissionDefinitionSort
+  ): BaseMissionDefinitionsLeanType!
+
+  # Request the list of mission definitions
+  missionDefinitionsOverviewByRobot(
+    # Specify from which robot the mission definitions should be requested.
+    robotId: String!
+
+    # Set the pagination for the query.
+    pagination: ConnectionInput!
+
+    # Set the sorting for the query.
+    sort: QueryMissionDefinitionSort
+  ): BaseMissionDefinitionsLeanType!
 
   # Request the list of mission definitions
   missionDefinitions(
@@ -2970,9 +3535,6 @@ type Query {
     # The id of the robot.
     robotId: String!
   ): MissionRoadmapType!
-
-  # @Private Find all task definitions.
-  missionTaskDefinitions: [AbstractMissionTaskDefinitionType!]!
 
   # @Private Get the docking station of the assigned robot.
   dockingStationByAssignedRobot(
@@ -3031,6 +3593,15 @@ type Query {
     robotID: String!
   ): Boolean!
 
+  # @Private Compute a preview for a mission definition and a robot. The robot has to be awake.
+  computeMissionExecutionPreview(
+    # The id of the robot.
+    robotId: String!
+
+    # The id of the mission definition.
+    missionDefinitionId: String!
+  ): MissionExecutionPreviewType!
+
   # @Private Find all events of a robot.
   events(
     # The id of the robot connected with the event.
@@ -3061,7 +3632,7 @@ type Query {
   # Receive the history of executed missions. The list is sorted in descending order by the start timestamp. Note that the the list only provides a lightweight subset of the reports. In order to receive the full report (e.g. payloads, trajectory data, ...) query the specific report by id.
   missionReports(
     # The pagination parameters.
-    filter: ConnectionInput
+    filter: ConnectionInput = { first: 10 }
 
     # The filter parameters. At least one needs to be provided.
     input: QueryMissionReportInput!
@@ -3157,6 +3728,24 @@ input QueryDataPayloadsBySkillExecutionInput {
   producerName: String!
 }
 
+# Sorting options for mission definition queries.
+input QueryMissionDefinitionSort {
+  # Field to sort by.
+  sortBy: MissionDefinitionSortFieldsEnum
+
+  # Sort direction.
+  direction: OrderTypeEnum
+}
+
+# The fields that can be used to sort mission definitions.
+enum MissionDefinitionSortFieldsEnum {
+  # The name of the mission definition
+  NAME
+
+  # The Id contains the timestamp of the mission definition creation
+  ID
+}
+
 # Query options for mission definition queries.
 input QueryMissionDefinitionInput {
   # Query for mission definitions defined on a specific site.
@@ -3164,6 +3753,12 @@ input QueryMissionDefinitionInput {
 
   # Query for mission definitions executable by a specific robot.
   robotID: String
+
+  # Field to sort by.
+  sortField: MissionDefinitionSortFieldsEnum
+
+  # Sort direction.
+  sortDirection: OrderTypeEnum
 }
 
 input PeriodInput {
@@ -3321,8 +3916,17 @@ type Mutation {
     # The id of the affected site stage
     siteStageId: String!
 
-    # The id of the affected site stage
+    # The id of point of interest to add to the stage
     pointOfInterestId: String!
+  ): SiteStageType!
+
+  # @Private Add multiple point of interest to a stage.
+  addPointsOfInterestToStage(
+    # The id of the affected site stage
+    siteStageId: String!
+
+    # The ids of the point of interests to add to the stage
+    input: SiteStageIdListInput!
   ): SiteStageType!
 
   # @Private Add a point of interest to the remove list of the site stage.
@@ -3330,8 +3934,17 @@ type Mutation {
     # The id of the affected site stage
     siteStageId: String!
 
-    # The id of the affected site stage
+    # The id of point of interest to remove from the stage
     pointOfInterestId: String!
+  ): SiteStageType!
+
+  # @Private Add a point of interest to the remove list of the site stage.
+  addPointsOfInterestToRemoveListOfStage(
+    # The id of the affected site stage
+    siteStageId: String!
+
+    # The ids of point of interests to remove from the stage
+    input: SiteStageIdListInput!
   ): SiteStageType!
 
   # @Private Add a site object to a stage.
@@ -3339,8 +3952,17 @@ type Mutation {
     # The id of the affected site stage
     siteStageId: String!
 
-    # The id of the affected site stage
+    # The id of the site object to add to the site stage
     siteObjectId: String!
+  ): SiteStageType!
+
+  # @Private Add a site object to a stage.
+  addSiteObjectsToStage(
+    # The id of the affected site stage
+    siteStageId: String!
+
+    # The id of the site objects to add to the site stage
+    input: SiteStageIdListInput!
   ): SiteStageType!
 
   # @Private Adds the site object to the remove list of the site stage.
@@ -3348,8 +3970,17 @@ type Mutation {
     # The id of the affected site stage
     siteStageId: String!
 
-    # The id of the affected site stage
+    # The id of the site object to remove from the site stage
     siteObjectId: String!
+  ): SiteStageType!
+
+  # @Private Adds the site object to the remove list of the site stage.
+  addSiteObjectsToRemoveListOfStage(
+    # The id of the affected site stage
+    siteStageId: String!
+
+    # The id of the site objects to remove from the site stage
+    input: SiteStageIdListInput!
   ): SiteStageType!
 
   # @Private Commit an open stage and create a new site snapshot
@@ -3510,6 +4141,21 @@ type Mutation {
       reason: "[04-05-2023] No longer possible, change site snapshot head instead"
     )
 
+  # @Internal Create a new zone.
+  addZone(
+    # The ID of the site.
+    siteId: String!
+
+    # The payload to create a zone.
+    input: AddZoneInput!
+  ): ZoneType!
+
+  # @Internal Delete a zone.
+  removeZone(
+    # The ID of the zone.
+    id: String!
+  ): Void!
+
   # @Internal Create a feature-flag
   createFeatureFlag(input: CreateFeatureFlagInput!): PrivateFeatureFlagType!
 
@@ -3628,13 +4274,22 @@ type Mutation {
     input: UpdateSensorDescriptionInput!
   ): SensorConfigType!
 
+  # @Private
+  livekitToken(robotId: String!, clientKey: String!): String!
+
+  # @Private
+  anymalBridgeLivekitToken(robotId: String!): String!
+
   # @Private Store poi json data
   upsertPointOfInterestJsonDataByKey(
+    # The id of the site of the poi
+    siteId: String!
+
     # The key of the point of interest.
     pointOfInterestKey: String!
 
-    # The id of the site of the poi
-    siteId: String!
+    # The key of the annotation ('manometer' or 'annotations')
+    annotationKey: NonEmptyString!
 
     # The new poi data
     jsonData: Json!
@@ -3693,66 +4348,6 @@ type Mutation {
     # The id of the robot
     robotId: String!
   ): SiteRecordingType!
-
-  # @Private Teach a new docking station with a robot. The user has to be principal driver and a recording has to run.
-  teachInDockingStationSiteObject(
-    # The id of the robot.
-    robotId: String!
-
-    # Args to teach in a new docking station
-    input: TeachInDockingStationSiteObjectInput!
-  ): DockingStationSiteObjectType!
-
-  # @Internal Become the new principal driver for the provided robot. This is a legacy function to allow er_web_api to update the principal driver. In all new systems please use 'becomePrincipal' mutation.
-  becomePrincipalDriverLegacy(
-    # The id of the robot the principal driver should be requested from.
-    robotId: String!
-
-    # The parameters to create a new principal driver.
-    input: CreatePrincipalDriverInput!
-  ): PrincipalDriverType!
-
-  # @Private Become the new principal driver for the provided robot.
-  becomePrincipalDriver(
-    # The id of the robot the principal driver should be requested from.
-    robotId: String!
-  ): PrincipalDriverType!
-
-  # @Private Provide an SDP offer to the WebRTC service. If successful it will return the SDP response.
-  connectWebRtc(
-    # The type of the web rtc connection.
-    connectionType: WebRtcConnectionTypeEnum!
-
-    # The id of the robot the WebRTC connection is requested for.
-    robotId: String!
-
-    # The sdp offer.
-    sdpOffer: Sdp!
-  ): WebRtcHandshakeResponseType!
-
-  # @Private Provides the local generated ICECandidates to the WebRTC service.
-  addIceCandidate(
-    # The id of the webrtc connection
-    id: String!
-
-    # The type of the web rtc connection.
-    connectionType: WebRtcConnectionTypeEnum!
-
-    # The id of the connection related robot.
-    robotId: String!
-
-    # The new  ICECandidate.
-    input: CreateIceCandidateInput!
-  ): Boolean!
-
-  # @Private Request the WebRTC backchannel for a provided robot
-  requestWebRtcBackchannel(
-    # The id of the webrtc connection
-    id: String!
-
-    # The id of the robot the WebRTC backchannel is requested for.
-    robotId: String!
-  ): Boolean!
 
   # @Internal Allows a robot to provide status updates to the cloud core api. These updates are pushed to all available subscriptions
   updateRobotState(
@@ -3826,6 +4421,69 @@ type Mutation {
     cameraId: String!
   ): RobotCommandExecutionType!
 
+  # @Private Open the docking station of an robot
+  executeDockingStationOpenCommand(
+    # The id of the robot.
+    robotId: String!
+
+    # The target state of the docking station
+    targetState: Boolean!
+  ): RobotCommandExecutionType!
+
+  # @Private Take off with a drone
+  executeDroneTakeOffCommand(
+    # The id of the drone.
+    robotId: String!
+  ): RobotCommandExecutionType!
+
+  # @Private Land with a drone
+  executeDroneLandCommand(
+    # The id of the drone.
+    robotId: String!
+
+    # Execute precision land
+    precisionLand: Boolean! = false
+  ): RobotCommandExecutionType!
+
+  # @Private Return back to the home docking station
+  executeDroneReturnToHomeCommand(
+    # The id of the drone.
+    robotId: String!
+  ): RobotCommandExecutionType!
+
+  # @Private Transfer high resolution image from a drone
+  executeDroneHighResolutionImageTransferCommand(
+    # The id of the drone.
+    robotId: String!
+  ): RobotCommandExecutionType!
+
+  # @Private Turn the drones' charger on/off
+  executeDroneChargerOnCommand(
+    # The id of the drone.
+    robotId: String!
+
+    # The target state of the charger
+    targetState: Boolean!
+  ): RobotCommandExecutionType!
+
+  # @Private Turn the drone on/off
+  executeDroneOnCommand(
+    # The id of the drone.
+    robotId: String!
+
+    # The target state of the drone
+    targetState: Boolean!
+  ): RobotCommandExecutionType!
+
+  # @Private Turn the drones' remote control on/off
+  executeDroneRemoteControlOnCommand(
+    # The id of the drone.
+    robotId: String!
+
+    # The target state of the remote control
+    targetState: Boolean!
+  ): RobotCommandExecutionType!
+
   # @Internal Allows the robot to accept a request.
   robotCommandResponse(
     # The id of the command execution
@@ -3841,6 +4499,66 @@ type Mutation {
     result: RobotCommandExecutionResultEnum!
   ): RobotCommandExecutionType!
 
+  # @Internal Become the new principal driver for the provided robot. This is a legacy function to allow er_web_api to update the principal driver. In all new systems please use 'becomePrincipal' mutation.
+  becomePrincipalDriverLegacy(
+    # The id of the robot the principal driver should be requested from.
+    robotId: String!
+
+    # The parameters to create a new principal driver.
+    input: CreatePrincipalDriverInput!
+  ): PrincipalDriverType!
+
+  # @Private Become the new principal driver for the provided robot.
+  becomePrincipalDriver(
+    # The id of the robot the principal driver should be requested from.
+    robotId: String!
+  ): PrincipalDriverType!
+
+  # @Private Provide an SDP offer to the WebRTC service. If successful it will return the SDP response.
+  connectWebRtc(
+    # The type of the web rtc connection.
+    connectionType: WebRtcConnectionTypeEnum!
+
+    # The id of the robot the WebRTC connection is requested for.
+    robotId: String!
+
+    # The sdp offer.
+    sdpOffer: Sdp!
+  ): WebRtcHandshakeResponseType!
+
+  # @Private Provides the local generated ICECandidates to the WebRTC service.
+  addIceCandidate(
+    # The id of the webrtc connection
+    id: String!
+
+    # The type of the web rtc connection.
+    connectionType: WebRtcConnectionTypeEnum!
+
+    # The id of the connection related robot.
+    robotId: String!
+
+    # The new  ICECandidate.
+    input: CreateIceCandidateInput!
+  ): Boolean!
+
+  # @Private Request the WebRTC backchannel for a provided robot
+  requestWebRtcBackchannel(
+    # The id of the webrtc connection
+    id: String!
+
+    # The id of the robot the WebRTC backchannel is requested for.
+    robotId: String!
+  ): Boolean!
+
+  # @Private Teach a new docking station with a robot. The user has to be principal driver and a recording has to run.
+  teachInDockingStationSiteObject(
+    # The id of the robot.
+    robotId: String!
+
+    # Args to teach in a new docking station
+    input: TeachInDockingStationSiteObjectInput!
+  ): DockingStationSiteObjectType!
+
   # @Internal Transfer a site snapshot to a target site. The target site has to be on the initial snapshot.
   transferSiteSnapshotToSite(
     # The id of the desired snapshot of the source site
@@ -3849,6 +4567,57 @@ type Mutation {
     # The id of the target site
     targetSiteId: String!
   ): ProcessingPipelineType!
+
+  # @Private Teach a new POI. The user has to be principal driver and a recording has to run.
+  teachInPoi(
+    # The id of the robot.
+    robotId: String!
+
+    # Args to teach in a new docking station
+    input: TeachInPoiInput!
+  ): PointOfInterestType!
+
+  # @Private Ask robot to send map to UI
+  loadPointCloudFromRobot(
+    # The id of the robot.
+    robotId: String!
+  ): Boolean!
+
+  # @Private Create a new mission definition for an Anymal robot.
+  createAnymalMissionDefinition(
+    # Specify from which site the mission definitions should be requested.
+    siteId: String!
+
+    # The properties of the new mission.
+    input: CreateAnymalMissionDefinitionInput!
+  ): AnymalMissionDefinitionDetailType!
+
+  # @Private Create a new mission definition for a teach and repeat mission.
+  createLegacyMissionDefinition(
+    # Specify from which site the mission definitions should be requested.
+    siteId: String!
+
+    # The properties of the new mission.
+    input: CreateLegacyMissionDefinitionInput!
+  ): LegacyMissionDefinitionDetailType!
+
+  # @Private Create a new mission definition for an mission that uses imported files.
+  createImportedMissionDefinition(
+    # Specify from which site the mission definitions should be requested.
+    siteId: String!
+
+    # The properties of the new mission.
+    input: CreateImportedMissionDefinitionInput!
+  ): ImportedMissionDefinitionDetailType!
+
+  # @Private Create a new mission definition for an mission that uses imported files.
+  createClickAndInspectMissionDefinition(
+    # Specify from which site the mission definitions should be requested.
+    siteId: String!
+
+    # The properties of the new mission.
+    input: CreateBaseMissionDefinitionInput!
+  ): ClickInspectMissionDefinitionDetailType!
 
   # @Private Create a new mission definition.
   createMissionDefinition(
@@ -4060,8 +4829,22 @@ type Mutation {
     input: StartMissionExecutionInput!
   ): MissionExecutionType!
 
-  # Pause a running mission execution, this also stops the robot. Please do not use this mutation to implement an emergency stop!
+  # Start or resume an autonomous mission with a specific robot.
+  resumeMissionExecution(
+    # The id of the robot.
+    robotID: String!
+  ): MissionExecutionType!
+
+  # Pause a running mission execution. This stops the robot. Please do not use this mutation to implement an emergency stop!
   pauseMissionExecution(
+    # The id of the robot.
+    robotID: String!
+  ): MissionExecutionType!
+
+  # Reset mission execution. This stops the robot and resets the mission.
+  #     The robot must be able to navigate to the start pose of the next mission.
+  #     Please do not use this mutation to implement an emergency stop!
+  resetMissionExecution(
     # The id of the robot.
     robotID: String!
   ): MissionExecutionType!
@@ -4308,6 +5091,11 @@ input QuaternionInput {
   x: Float!
   y: Float!
   z: Float!
+}
+
+input SiteStageIdListInput {
+  # The list of id's that need to be added or removed;
+  ids: [ID!]!
 }
 
 # Options for the site snapshot head selection
@@ -4751,6 +5539,15 @@ input CreateDockingStationSiteObjectInput {
   compatibleRobotType: RobotTypeEnum!
 }
 
+# Payload to create a zone
+input AddZoneInput {
+  # The type of the zone
+  type: ZoneTypeEnum!
+
+  # The points representing the shape of the zone
+  points: [Point3DInput!]!
+}
+
 input CreateFeatureFlagInput {
   name: String!
   context: [ContextKeyValuePairInput!]
@@ -4778,6 +5575,21 @@ input AddCameraDescriptionInput {
 
   # The topic name of the camera used by the signaling server
   webRtcTopic: String!
+
+  # The streams provided by the camera
+  cameraStreams: [CameraStreamTypeInput!]
+}
+
+# Payloads to create a camera stream
+input CameraStreamTypeInput {
+  # The camera stream key
+  key: String!
+
+  # The camera stream webrtc topic
+  webRtcTopic: String!
+
+  # The camera stream name
+  name: String!
 }
 
 # Payloads to add a new sensor description
@@ -4882,36 +5694,6 @@ input UpdateSensorDataDiscretizationInput {
   maxValue: Float!
 }
 
-# Parameters to teach in a docking station.
-input TeachInDockingStationSiteObjectInput {
-  # The name of the docking station.
-  name: NonEmptyString!
-}
-
-input CreatePrincipalDriverInput {
-  userId: Float!
-  name: String!
-  email: String!
-}
-
-# Represents the different types of WebRTC connections.
-enum WebRtcConnectionTypeEnum {
-  # The (bidirectional) data channel connection to the robot.
-  ROBOT_DATA_CHANNEL
-}
-
-# Create a ICE (Interactive Connectivity Establishment) configuration which is used to establish a WebRTC connection.
-input CreateIceCandidateInput {
-  # A DOMString describing the properties of the candidate.
-  candidate: IceCandidate!
-
-  # A DOMString which uniquely identifies the source media component from which the candidate draws data, or null if no such association exists for the candidate.
-  sdpMid: String!
-
-  # A number containing a 0-based index into the set of m-lines providing media descriptions, indicating which media source is associated with the candidate, or null if no such association is available.
-  sdpMLineIndex: Int!
-}
-
 input UpdateRobotStateInput {
   isConnected: Boolean
   awakeState: AwakeStateEnum
@@ -4920,6 +5702,10 @@ input UpdateRobotStateInput {
   isEmergencySwitchPressed: Boolean
   isMotorsEnabled: Boolean
   isDocking: Boolean
+  droneConnected: Boolean
+  remoteControlConnected: Boolean
+  raining: Boolean
+  localizationValid: Boolean
 }
 
 # Represents the internal awake state of the robot. Not to confused with the 'AwakeStatusEnum' which also provides details about the transition states.
@@ -4975,6 +5761,123 @@ input StartVideoRecordingCommandInput {
   regionOfInterest: RegionOfInterestInput
 }
 
+input CreatePrincipalDriverInput {
+  userId: Float!
+  name: String!
+  email: String!
+}
+
+# Represents the different types of WebRTC connections.
+enum WebRtcConnectionTypeEnum {
+  # The (bidirectional) data channel connection to the robot.
+  ROBOT_DATA_CHANNEL
+}
+
+# Create a ICE (Interactive Connectivity Establishment) configuration which is used to establish a WebRTC connection.
+input CreateIceCandidateInput {
+  # A DOMString describing the properties of the candidate.
+  candidate: IceCandidate!
+
+  # A DOMString which uniquely identifies the source media component from which the candidate draws data, or null if no such association exists for the candidate.
+  sdpMid: String!
+
+  # A number containing a 0-based index into the set of m-lines providing media descriptions, indicating which media source is associated with the candidate, or null if no such association is available.
+  sdpMLineIndex: Int!
+}
+
+# Parameters to teach in a docking station.
+input TeachInDockingStationSiteObjectInput {
+  # The name of the docking station.
+  name: NonEmptyString!
+}
+
+# Parameters to teach in a POI.
+input TeachInPoiInput {
+  # The name of the POI.
+  name: NonEmptyString!
+
+  # The sensor name
+  sensor: NonEmptyString!
+
+  # The action type
+  action_type: NonEmptyString!
+
+  # The region of interest
+  roi_goal: RoiGoal
+
+  # The video duration of the POI
+  duration: Float
+}
+
+# Region of interest parameters
+input RoiGoal {
+  # rectify status
+  do_rectify: Boolean!
+
+  # height
+  height: Float!
+
+  # width
+  width: Float!
+
+  # x offset
+  x_offset: Float!
+
+  # y offset
+  y_offset: Float!
+}
+
+# Parameters to create a new mission definition.
+input CreateAnymalMissionDefinitionInput {
+  # The name of the mission.
+  name: String!
+
+  # Specify the requirements of the robot which should be able to execute this mission definition.
+  requiredRobotConfig: CreateRequiredRobotConfigInput
+
+  # The id of the mission known by the robot.
+  externalMissionId: String
+}
+
+# Parameters to create a new required robot config.
+input CreateRequiredRobotConfigInput {
+  # Force this mission to be only available for a specific robot.
+  robotId: String
+}
+
+# Parameters to create a new mission definition.
+input CreateLegacyMissionDefinitionInput {
+  # The name of the mission.
+  name: String!
+
+  # Specify the requirements of the robot which should be able to execute this mission definition.
+  requiredRobotConfig: CreateRequiredRobotConfigInput
+
+  # The id of the mission known by the robot.
+  legacyMissionDefinitionId: String
+}
+
+# Parameters to create a new mission definition.
+input CreateImportedMissionDefinitionInput {
+  # The name of the mission.
+  name: String!
+
+  # Specify the requirements of the robot which should be able to execute this mission definition.
+  requiredRobotConfig: CreateRequiredRobotConfigInput
+
+  # The id of the mission known by the robot.
+  filename: String
+}
+
+# Parameters to create a new mission definition.
+input CreateBaseMissionDefinitionInput {
+  # The name of the mission.
+  name: String!
+
+  # Specify the requirements of the robot which should be able to execute this mission definition.
+  requiredRobotConfig: CreateRequiredRobotConfigInput
+}
+
 # Parameters to create a new mission definition.
 input CreateMissionDefinitionInput {
   # The site the new mission belongs to
@@ -4989,14 +5892,11 @@ input CreateMissionDefinitionInput {
   # The name or path of the imported file
   filename: String
 
+  # The id of the mission known by the robot
+  externalMissionId: String
+
   # Specify the requirements of the robot which should be able to execute this mission definition.
   requiredRobotConfig: CreateRequiredRobotConfigInput
-}
-
-# Parameters to create a new required robot config.
-input CreateRequiredRobotConfigInput {
-  # Force this mission to be only available for a specific robot.
-  robotId: String
 }
 
 # Parameters to create a new end task definition.
@@ -5235,6 +6135,12 @@ type Subscription {
     types: [DataPayloadTypeEnum!]
   ): DataPayloadSubscriptionType!
 
+  # @Private Subscribe to updates of zones.
+  onZone(
+    # The id of the site.
+    siteId: String!
+  ): ZoneSubscriptionType!
+
   # @Private Get updates for the site recordings for a robot.
   onSiteRecordingStatus(
     # The id of the robot.
@@ -5252,24 +6158,6 @@ type Subscription {
     # The id of the robot.
     robotId: String!
   ): SiteRecordingControlRequestType!
-
-  # Subscribe to the current principal driver for a given robot.
-  onPrincipalDriverStatus(
-    # The id of the robot the principal driver should requested from.
-    robotId: String!
-  ): PrincipalDriverStatusType!
-
-  # @Private Subscribe to the remote generated ICECandidates.
-  onIceCandidatesStatus(
-    # The id of the webrtc connection
-    id: String!
-
-    # The type of the web rtc connection.
-    connectionType: WebRtcConnectionTypeEnum!
-
-    # The id of the connection related robot.
-    robotId: String!
-  ): IceCandidatesStatusType!
 
   # Subscribe to the latest robot status of a given robot. After the subscription, the latest status is returned, even if the robot is not available.
   onRobotStatus(
@@ -5300,6 +6188,24 @@ type Subscription {
     # The id of the robot.
     robotID: String!
   ): RobotCommandExecutionRequestType!
+
+  # Subscribe to the current principal driver for a given robot.
+  onPrincipalDriverStatus(
+    # The id of the robot the principal driver should requested from.
+    robotId: String!
+  ): PrincipalDriverStatusType!
+
+  # @Private Subscribe to the remote generated ICECandidates.
+  onIceCandidatesStatus(
+    # The id of the webrtc connection
+    id: String!
+
+    # The type of the web rtc connection.
+    connectionType: WebRtcConnectionTypeEnum!
+
+    # The id of the connection related robot.
+    robotId: String!
+  ): IceCandidatesStatusType!
 
   # @Private Subscribe to updates of mission definitions for a provided site.
   onMissionDefinition(
