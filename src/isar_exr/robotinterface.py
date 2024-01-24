@@ -165,6 +165,7 @@ class Robot(RobotInterface):
             return self.api.get_mission_status(settings.ROBOT_EXR_ID)
         except NoMissionRunningException:
             # This is a temporary solution until we have mission status by mission id
+            # TODO: query currentRobotStatus to check if it is docking
             return MissionStatus.Successful
         except Exception:
             message: str = "Could not get status of running mission\n"
@@ -178,6 +179,7 @@ class Robot(RobotInterface):
         raise NotImplementedError
 
     def step_status(self) -> StepStatus:
+        # TODO: use currentMissionExecution(robotID)
         self.logger.error("An invalid interface function was called")
         raise NotImplementedError
 
@@ -243,6 +245,8 @@ class Robot(RobotInterface):
 
     def robot_status(self) -> RobotStatus:
         # TODO: check if robot is running a task, or check if it is awake?
+        # TODO: use currentMissionExecution to see if Busy
+        # TODO: find endpoint to check if it is stuck, maybe MissionExecutionStatusEnum.PAUSED
         return RobotStatus.Available
 
     def _get_pose_telemetry(self, isar_id: str, robot_name: str) -> str:
