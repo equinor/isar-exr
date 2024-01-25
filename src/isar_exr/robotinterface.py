@@ -135,7 +135,7 @@ class Robot(RobotInterface):
 
         for task in mission.tasks:
             for step in task.steps:
-                # TODO: Support task with only DriveToStep
+                # TODO: Support task with only DriveToStep, see createWaypointTaskDefinition
                 if isinstance(step, InspectionStep):
                     self._add_point_of_interest_inspection_task_to_mission(
                         task_name=step.id,
@@ -152,8 +152,7 @@ class Robot(RobotInterface):
             mission_definition_id=mission_definition_id, robot_id=settings.ROBOT_EXR_ID
         )
 
-        # TODO: maybe store current mission, so that we can interpret idle but with mission as not idle
-
+        # TODO: instead of this sleep we may want to wait until it is awake
         time.sleep(
             5
         )  # Waits for mission to start in order to avoid returning Successful to ISAR
@@ -163,9 +162,8 @@ class Robot(RobotInterface):
             return self.api.get_mission_status(settings.ROBOT_EXR_ID)
         except NoMissionRunningException:
             # This is a temporary solution until we have mission status by mission id
-            # TODO: query currentRobotStatus to check if it is docking
             return MissionStatus.Successful
-        except Exception:
+        except Exception as e:
             message: str = "Could not get status of running mission\n"
             self.logger.error(message)
             raise RobotMissionStatusException(
