@@ -13,6 +13,7 @@ from gql.transport.exceptions import (
     TransportAlreadyConnected,
 )
 from graphql import DocumentNode, GraphQLError, GraphQLSchema, build_ast_schema, parse
+from httpx import ReadTimeout
 
 from isar_exr.api.authentication import get_access_token
 from isar_exr.config.settings import settings
@@ -60,7 +61,7 @@ class GraphqlClient:
         transport: HTTPXTransport = HTTPXTransport(
             url=settings.ROBOT_API_URL, headers=auth_header
         )
-        self.client: Client = Client(transport=transport, schema=schema)
+        self.client: Client = Client(transport=transport, schema=schema)  # type: ignore
         self.schema: DSLSchema = DSLSchema(self.client.schema)
         self.session = self.client.connect_sync()
 
@@ -120,8 +121,10 @@ class GraphqlClient:
         except TransportAlreadyConnected as e:
             self.logger.error(f"The transport is already connected: {e}")
             raise
+        except ReadTimeout as e:
+            self.logger.error(f"Request GraphQL API timed out: {e}")
+            raise
         except Exception as e:
-            # TODO: 'The read operation timed out' happens even though nothing is happening on the robot
             self.logger.error(f"Unknown error in GraphQL client: {e}")
             raise
         finally:

@@ -64,7 +64,10 @@ class EnergyRoboticsApi:
         )
 
         if response_dict["currentMissionExecution"] is None:
-            raise NoMissionRunningException
+            raise NoMissionRunningException(
+                f"Cannot get EXR mission status - No EXR mission is running for robot "
+                f"with id {exr_robot_id}"
+            )
 
         step_status = ExrMissionStatus(
             response_dict["currentMissionExecution"]["status"]
