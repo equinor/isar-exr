@@ -1,0 +1,95 @@
+{
+  "name": "exr_kårstø",
+  "map_from": {
+    "name": "robot",
+    "reference_positions": {
+      "positions": [
+        {
+          "x": -5.333122935326156,
+          "y": -0.3654816647913732,
+          "z": 1.5979740000000007,
+          "frame": {
+            "name": "robot"
+          }
+        },
+        {
+          "x": 0.3567265921532725,
+          "y": -3.799932727849016,
+          "z": 1.0092499999999998,
+          "frame": {
+            "name": "robot"
+          }
+        },
+        {
+          "x": 1.4883373289667736,
+          "y": -0.0668700337027741,
+          "z": 0.0024885716738439166,
+          "frame": {
+            "name": "robot"
+          }
+        }
+      ],
+      "frame": {
+        "name": "robot"
+      }
+    },
+    "frame": {
+      "name": "robot"
+    }
+  },
+  "map_to": {
+    "name": "asset",
+    "reference_positions": {
+      "positions": [
+        {
+          "x": 20185.764,
+          "y": 5234.023,
+          "z": 16.106,
+          "frame": {
+            "name": "asset"
+          }
+        },
+        {
+          "x": 20188.916,
+          "y": 5240.477,
+          "z": 15.377,
+          "frame": {
+            "name": "asset"
+          }
+        },
+        {
+          "x": 20185.474,
+          "y": 5240.511,
+          "z": 14.496,
+          "frame": {
+            "name": "asset"
+          }
+        }
+      ],
+      "frame": {
+        "name": "asset"
+      }
+    },
+    "frame": {
+      "name": "asset"
+    },
+    "bounds": {
+      "position1": {
+        "x": 20177.795,
+        "y": 5220.742,
+        "z": 14.654,
+        "frame": {
+          "name": "asset"
+        }
+      },
+      "position2": {
+        "x": 20203.388,
+        "y": 5264.005,
+        "z": 22.758,
+        "frame": {
+          "name": "asset"
+        }
+      }
+    }
+  }
+}
