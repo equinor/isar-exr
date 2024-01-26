@@ -13,7 +13,7 @@ from gql.transport.exceptions import (
     TransportAlreadyConnected,
 )
 from graphql import DocumentNode, GraphQLError, GraphQLSchema, build_ast_schema, parse
-from httpx import ReadTimeout
+from httpx import ConnectTimeout, ReadTimeout
 
 from isar_exr.api.authentication import get_access_token
 from isar_exr.config.settings import settings
@@ -122,7 +122,10 @@ class GraphqlClient:
             self.logger.error(f"The transport is already connected: {e}")
             raise
         except ReadTimeout as e:
-            self.logger.error(f"Request GraphQL API timed out: {e}")
+            self.logger.error(f"Request to GraphQL API timed out: {e}")
+            raise
+        except ConnectTimeout as e:
+            self.logger.error(f"Connection to GraphQL API timed out: {e}")
             raise
         except Exception as e:
             self.logger.error(f"Unknown error in GraphQL client: {e}")
