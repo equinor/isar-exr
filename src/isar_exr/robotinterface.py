@@ -288,11 +288,17 @@ class Robot(RobotInterface):
             ),
         )
 
+        transformed_robot_pose = self.transform.transform_position(
+            positions=robot_pose.position,
+            from_=robot_pose.position.frame,
+            to_=Frame("robot"),
+        )
+
         photo_input_pose: Pose3DInput = Pose3DInput(
             position=Point3DInput(
-                x=robot_pose.position.x,
-                y=robot_pose.position.y,
-                z=robot_pose.position.z,
+                x=transformed_robot_pose.x,
+                y=transformed_robot_pose.y,
+                z=transformed_robot_pose.z,
             ),
             orientation=QuaternionInput(
                 w=robot_pose.orientation.w,

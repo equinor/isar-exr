@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     ROBOT_EXR_SITE_ID: str = Field(default="61a0a1f45f71913ebbb4657d")
 
     # Map to be used for creation of alitra transformation
-    MAP: str = Field(default="exr_default")
+    MAP: str = Field(default="exr_klab_sst")
 
     # URL for Ex-Robotics API
     ROBOT_API_URL: str = Field(default="https://developer.energy-robotics.com/graphql/")
