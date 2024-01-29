@@ -30,6 +30,7 @@ from robot_interface.models.mission.mission import Mission
 from robot_interface.models.mission.status import MissionStatus, RobotStatus, StepStatus
 from robot_interface.models.mission.step import (
     DriveToPose,
+    Localize,
     InspectionStep,
     Step,
     TakeImage,
@@ -56,7 +57,6 @@ from isar_exr.api.models.models import (
     Pose3DInput,
     Pose3DStampedInput,
     QuaternionInput,
-    RobotTypeEnum,
     AddPointOfInterestInput,
 )
 from isar_exr.config.settings import settings
@@ -92,11 +92,26 @@ class Robot(RobotInterface):
         if curent_stage_id is not None:
             self.api.discard_stage(stage_id=curent_stage_id)
         stage_id: str = self.api.create_stage(site_id=settings.ROBOT_EXR_SITE_ID)
+
         updating_site = False
         poi_ids: List[str] = []
+        is_possible_return_to_home_mission = False
+        steps_n = 0
         for task in mission.tasks:
             for step in task.steps:
+                steps_n += 1
+                if isinstance(step, Localize):
+                    steps_n -= 1
                 if isinstance(step, DriveToPose):
+                    if (
+                        step.pose.position.x == 0.0
+                        and step.pose.position.y == 0.0
+                        and step.pose.position.z == 0.0
+                        and step.pose.orientation.x == 0.0
+                        and step.pose.orientation.y == 0.0
+                        and step.pose.orientation.z == 0.0
+                    ):
+                        is_possible_return_to_home_mission = True
                     robot_pose: Pose = step.pose
                 if isinstance(step, InspectionStep):
                     existing_poi_id = self.api.get_point_of_interest_by_customer_tag(
@@ -113,6 +128,9 @@ class Robot(RobotInterface):
                         updating_site = True
                     else:
                         poi_ids.append(existing_poi_id)
+
+        if steps_n == 0 or (steps_n == 1 and is_possible_return_to_home_mission):
+            return
 
         if updating_site:
             # We should only do the following if we changed the site
