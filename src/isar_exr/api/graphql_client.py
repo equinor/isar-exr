@@ -45,7 +45,7 @@ class GraphqlClient:
         )
         # self.session.transport = transport
         schema: GraphQLSchema = build_ast_schema(self.document)
-        self.client: Client = Client(transport=transport, schema=schema)
+        self.client = Client(transport=transport, schema=schema)
         self.session = self.client.connect_sync()
 
     def _initialize_session(self) -> None:

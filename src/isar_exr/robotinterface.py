@@ -130,6 +130,7 @@ class Robot(RobotInterface):
                         poi_ids.append(existing_poi_id)
 
         if steps_n == 0 or (steps_n == 1 and is_possible_return_to_home_mission):
+            time.sleep(settings.API_SLEEP_TIME)
             return
 
         if updating_site:
@@ -169,11 +170,6 @@ class Robot(RobotInterface):
         self.api.start_mission_execution(
             mission_definition_id=mission_definition_id, robot_id=settings.ROBOT_EXR_ID
         )
-
-        # TODO: instead of this sleep we may want to wait until it is awake
-        time.sleep(
-            5
-        )  # Waits for mission to start in order to avoid returning Successful to ISAR
 
     def mission_status(self) -> MissionStatus:
         try:
