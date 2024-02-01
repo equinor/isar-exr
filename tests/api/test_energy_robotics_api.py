@@ -32,17 +32,19 @@ class TestPauseMission:
     paused_response: Dict[str, Any] = {"status": "PAUSED"}
     wrong_response: Dict[str, Any] = {"status": "REJECTED"}
 
-    @mock.patch.object(Client, "execute", Mock(return_value=paused_response))
+    @mock.patch.object(GraphqlClient, "query", Mock(return_value=paused_response))
     def test_succeeds_if_status_is_paused(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         api.pause_current_mission("test_exr_robot_id")
 
-    @mock.patch.object(Client, "execute", Mock(return_value=pause_requested_response))
+    @mock.patch.object(
+        GraphqlClient, "query", Mock(return_value=pause_requested_response)
+    )
     def test_succeeds_if_status_is_paused_requested(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         api.pause_current_mission("test_exr_robot_id")
 
-    @mock.patch.object(Client, "execute", Mock(return_value=wrong_response))
+    @mock.patch.object(GraphqlClient, "query", Mock(return_value=wrong_response))
     def test_fails_if_status_is_anything_else(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=Exception):
@@ -60,7 +62,7 @@ class TestCreatePointOfinterest:
     }
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_point_of_interest_response)
+        GraphqlClient, "query", Mock(return_value=api_point_of_interest_response)
     )
     def test_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -81,7 +83,7 @@ class TestCreatePointOfinterest:
         return_value = api.create_point_of_interest(point_of_interest_input=poi)
         assert return_value == self.expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         position: Point3DInput = Point3DInput(x=0, y=0, z=0)
@@ -113,7 +115,7 @@ class TestUpsertPointOfinterest:
     }
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_point_of_interest_response)
+        GraphqlClient, "query", Mock(return_value=api_point_of_interest_response)
     )
     def test_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -143,7 +145,7 @@ class TestUpsertPointOfinterest:
         )
         assert return_value == self.expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_api_returns_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         position: Point3DInput = Point3DInput(x=0, y=0, z=0)
@@ -285,13 +287,17 @@ class TestTaskCreatorFunctions:
 class TestWakeUpRobot:
     wake_up_requested_response: Dict[str, Any] = {"id": "command_id"}
 
-    @mock.patch.object(Client, "execute", Mock(return_value=wake_up_requested_response))
+    @mock.patch.object(
+        GraphqlClient, "query", Mock(return_value=wake_up_requested_response)
+    )
     @mock.patch.object(EnergyRoboticsApi, "is_robot_awake", Mock(return_value=True))
     def test_succeeds_if_robot_is_awake(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         api.wake_up_robot("test_exr_robot_id")
 
-    @mock.patch.object(Client, "execute", Mock(return_value=wake_up_requested_response))
+    @mock.patch.object(
+        GraphqlClient, "query", Mock(return_value=wake_up_requested_response)
+    )
     @mock.patch.object(EnergyRoboticsApi, "is_robot_awake", Mock(return_value=False))
     def test_fails_if_robot_is_not_awake_after_max_time(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -323,23 +329,27 @@ class TestRobotAwakeQuery:
         "currentRobotStatus": {"isConnected": False, "awakeStatus": AwakeStatus.Asleep}
     }
 
-    @mock.patch.object(Client, "execute", Mock(return_value=mocked_response_awake))
+    @mock.patch.object(GraphqlClient, "query", Mock(return_value=mocked_response_awake))
     def test_returns_true_if_robot_is_awake(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == True
 
-    @mock.patch.object(Client, "execute", Mock(return_value=mocked_response_waking_up))
+    @mock.patch.object(
+        GraphqlClient, "query", Mock(return_value=mocked_response_waking_up)
+    )
     def test_returns_false_if_robot_is_waking_up(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == False
 
-    @mock.patch.object(Client, "execute", Mock(return_value=mocked_response_asleep))
+    @mock.patch.object(
+        GraphqlClient, "query", Mock(return_value=mocked_response_asleep)
+    )
     def test_returns_false_if_robot_is_asleep(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         assert api.is_robot_awake("test_exr_robot_id") == False
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=mocked_response_going_to_sleep)
+        GraphqlClient, "query", Mock(return_value=mocked_response_going_to_sleep)
     )
     def test_returns_false_if_robot_is_going_to_awake_status_going_to_sleep(
         self,
@@ -348,7 +358,7 @@ class TestRobotAwakeQuery:
         assert api.is_robot_awake("test_exr_robot_id") == False
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=mocked_response_not_connected)
+        GraphqlClient, "query", Mock(return_value=mocked_response_not_connected)
     )
     def test_raises_exception_if_robot_is_not_connected(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -366,7 +376,7 @@ class TestCreateMissionDefinition:
         "createMissionDefinition": {"id": expected_return_id}
     }
 
-    @mock.patch.object(Client, "execute", Mock(return_value=api_execute_response))
+    @mock.patch.object(GraphqlClient, "query", Mock(return_value=api_execute_response))
     def test_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         return_value: str = api.create_mission_definition(
@@ -376,7 +386,7 @@ class TestCreateMissionDefinition:
         )
         assert return_value == self.expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
@@ -397,7 +407,7 @@ class TestStartMissionExecution:
         "startMissionExecution": {"id": expected_return_id}
     }
 
-    @mock.patch.object(Client, "execute", Mock(return_value=api_execute_response))
+    @mock.patch.object(GraphqlClient, "query", Mock(return_value=api_execute_response))
     def test_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         return_value: str = api.start_mission_execution(
@@ -406,7 +416,7 @@ class TestStartMissionExecution:
         )
         assert return_value == self.expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
@@ -447,7 +457,7 @@ class TestStageAndSnapshot:
     }
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_execute_response_crate_stage)
+        GraphqlClient, "query", Mock(return_value=api_execute_response_crate_stage)
     )
     def test_create_stage_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -455,21 +465,21 @@ class TestStageAndSnapshot:
         assert return_value == self.create_stage_expected_return_id
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_execute_response_discard_stage)
+        GraphqlClient, "query", Mock(return_value=api_execute_response_discard_stage)
     )
     def test_discard_stage_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         return_value: str = api.discard_stage(stage_id="stage_id")
         assert return_value == self.discard_stage_expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_create_stage_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
             api.create_stage(site_id="mock_site_id")
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_execute_response_add_poi_to_stage)
+        GraphqlClient, "query", Mock(return_value=api_execute_response_add_poi_to_stage)
     )
     def test_add_poi_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -478,7 +488,7 @@ class TestStageAndSnapshot:
         )
         assert return_value == self.add_poi_to_stage_expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_add_poi_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
@@ -487,21 +497,21 @@ class TestStageAndSnapshot:
             )
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_execute_response_commit_site)
+        GraphqlClient, "query", Mock(return_value=api_execute_response_commit_site)
     )
     def test_commit_site_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         return_value: str = api.commit_site_to_snapshot(stage_id="mock_stage_id")
         assert return_value == self.commit_site_expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_commit_site_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
             api.commit_site_to_snapshot(stage_id="mock_stage_id")
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_execute_response_set_head)
+        GraphqlClient, "query", Mock(return_value=api_execute_response_set_head)
     )
     def test_set_head_succeeds_if_id_returned(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
@@ -510,7 +520,7 @@ class TestStageAndSnapshot:
         )
         assert return_value == self.set_head_expected_return_id
 
-    @mock.patch.object(Client, "execute", Mock(side_effect=Exception))
+    @mock.patch.object(GraphqlClient, "query", Mock(side_effect=Exception))
     def test_set_head_api_return_exception(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()
         with pytest.raises(expected_exception=RobotException):
@@ -519,7 +529,7 @@ class TestStageAndSnapshot:
             )
 
     @mock.patch.object(
-        Client, "execute", Mock(return_value=api_execute_response_site_stage)
+        GraphqlClient, "query", Mock(return_value=api_execute_response_site_stage)
     )
     def test_current_site_stage(self) -> None:
         api: EnergyRoboticsApi = EnergyRoboticsApi()

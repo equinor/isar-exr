@@ -4,7 +4,6 @@ from typing import Any, Dict
 from gql import Client
 from gql.dsl import DSLSchema
 from gql.transport.httpx import HTTPXTransport
-from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.exceptions import (
     TransportClosed,
     TransportProtocolError,
