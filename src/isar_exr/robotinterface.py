@@ -118,11 +118,13 @@ class Robot(RobotInterface):
                         customer_tag=task.tag_id, site_id=settings.ROBOT_EXR_SITE_ID
                     )
                     if existing_poi_id == None:
-                        poi_id: str = self._create_and_add_poi(  # Here we should only create if it does not already exist
-                            task=task,
-                            step=step,
-                            robot_pose=robot_pose,
-                            stage_id=stage_id,
+                        poi_id: str = (
+                            self._create_and_add_poi(  # Here we should only create if it does not already exist
+                                task=task,
+                                step=step,
+                                robot_pose=robot_pose,
+                                stage_id=stage_id,
+                            )
                         )
                         poi_ids.append(poi_id)
                         updating_site = True
@@ -154,7 +156,10 @@ class Robot(RobotInterface):
 
         for task in mission.tasks:
             for step in task.steps:
-                # TODO: Support task with only DriveToStep, see createWaypointTaskDefinition
+                if isinstance(step, DriveToPose):
+                    self._add_waypoint_task_to_mission(
+                        mission_definition_id=mission_definition_id, step=step
+                    )
                 if isinstance(step, InspectionStep):
                     self._add_point_of_interest_inspection_task_to_mission(
                         task_name=step.id,
@@ -373,7 +378,7 @@ class Robot(RobotInterface):
             pose=step.pose, from_=step.pose.frame, to_=Frame("robot")
         )
         pose_3d_stamped: Pose3DStampedInput = Pose3DStampedInput(
-            timestamp=time.time(),
+            timestamp=int(round(datetime.datetime.now().timestamp())),
             frameID="map",
             position=Point3DInput(
                 x=pose.position.x, y=pose.position.y, z=pose.position.z
