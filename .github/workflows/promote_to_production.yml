@@ -1,0 +1,63 @@
+name: Promote to Production
+
+# Only one workflow in a concurrency group may run at a time
+concurrency:
+  group: production-concurrency
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger-github-deployment:
+    name: Trigger GitHub Deployment
+    environment: Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Empty Step
+        run: echo "Hello World"
+
+  get_staging_version:
+    name: Get version from staging
+    needs: trigger-github-deployment
+    outputs:
+      versionTag: ${{ steps.get_version_tag.outputs.tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout infrastructure
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          repository: equinor/robotics-infrastructure
+          ssh-key: ${{ secrets.ROBOTICS_INFRASTRUCTURE_DEPLOY_KEY }}
+
+      - name: Get Isar-Exr version in staging
+        id: get_version_tag
+        run: |
+          LINE_NUMBERS=($(grep -n "auroraprodacr.azurecr.io/robotics/isar-exr" "k8s_kustomize/overlays/staging/kustomization.yaml" | cut -d ':' -f 1))
+          largest_version_int=0
+          largest_version_tag=
+          for line_number in "${LINE_NUMBERS[@]}"
+          do
+              TAG_LINE_NUMBER=$((line_number+1))
+              version_tag=$(sed -n "${TAG_LINE_NUMBER}p" k8s_kustomize/overlays/staging/kustomization.yaml  |  cut --delimiter=":" --fields=2)
+              version_int=$(echo "$version_tag" | tr -d '.' | tr -d '\n' | tr -d '\r' | tr -d 'v')
+              if [[ "$version_int" -gt "$largest_version_int" ]]; then
+                  largest_version_tag=$version_tag
+                  largest_version_int=$version_int
+              fi
+          done
+          echo "tag=$largest_version_tag" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Update deployment in Production
+    needs: [get_staging_version, trigger-github-deployment]
+    uses: ./.github/workflows/update_aurora_deployment.yml
+    with:
+      Environment: production
+      Tag: ${{ needs.get_staging_version.outputs.versionTag }}
+      Registry: auroraprodacr.azurecr.io
+      ImageName: robotics/isar-exr
+      AuthorName: ${{ github.actor }}
+    secrets:
+      DeployKey: ${{ secrets.ROBOTICS_INFRASTRUCTURE_DEPLOY_KEY }}
