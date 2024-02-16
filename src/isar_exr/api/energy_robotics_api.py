@@ -531,7 +531,7 @@ class EnergyRoboticsApi:
         except Exception as e:
             message: str = "Could not check robot battery level"
             self.logger.error(message)
-            raise RobotMissionStatusException(
+            raise RobotMissionStatusException( #TODO: occurs after obstacle
                 error_description=message,
             )
 
