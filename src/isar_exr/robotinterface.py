@@ -95,58 +95,63 @@ class Robot(RobotInterface):
         return stage_id
 
     def initiate_mission(self, mission: Mission) -> None:
-        stage_id: str = self.create_new_stage()
-
-        updating_site = False
+        new_stage_id = None
         poi_ids: List[str] = []
         is_possible_return_to_home_mission = False
         steps_n = 0
-        for task in mission.tasks:
-            for step in task.steps:
-                steps_n += 1
-                if isinstance(step, Localize):
-                    steps_n -= 1
-                if isinstance(step, DriveToPose):
-                    if (
-                        step.pose.position.x == 0.0
-                        and step.pose.position.y == 0.0
-                        and step.pose.position.z == 0.0
-                        and step.pose.orientation.x == 0.0
-                        and step.pose.orientation.y == 0.0
-                        and step.pose.orientation.z == 0.0
-                    ):
-                        is_possible_return_to_home_mission = True
-                    robot_pose: Pose = step.pose
-                if isinstance(step, InspectionStep):
-                    existing_poi_id = self.api.get_point_of_interest_by_customer_tag(
-                        customer_tag=task.tag_id, site_id=settings.ROBOT_EXR_SITE_ID
-                    )
-                    if existing_poi_id == None:
-                        poi_id: str = (
-                            self._create_and_add_poi(
-                                task=task,
-                                step=step,
-                                robot_pose=robot_pose, # This pose is set by the previously received DriveToStep
-                                stage_id=stage_id,
-                            )
+
+        try:
+            for task in mission.tasks:
+                for step in task.steps:
+                    steps_n += 1
+                    if isinstance(step, Localize):
+                        steps_n -= 1
+                    if isinstance(step, DriveToPose):
+                        if (
+                            step.pose.position.x == 0.0
+                            and step.pose.position.y == 0.0
+                            and step.pose.position.z == 0.0
+                            and step.pose.orientation.x == 0.0
+                            and step.pose.orientation.y == 0.0
+                            and step.pose.orientation.z == 0.0
+                        ):
+                            is_possible_return_to_home_mission = True
+                        robot_pose: Pose = step.pose
+                    if isinstance(step, InspectionStep):
+                        existing_poi_id = self.api.get_point_of_interest_by_customer_tag(
+                            customer_tag=task.tag_id, site_id=settings.ROBOT_EXR_SITE_ID
                         )
-                        poi_ids.append(poi_id)
-                        updating_site = True
-                    else:
-                        poi_ids.append(existing_poi_id)
+                        if existing_poi_id == None:
+                            new_stage_id: str = self.create_new_stage()
+                            poi_id: str = (
+                                self._create_and_add_poi(
+                                    task=task,
+                                    step=step,
+                                    robot_pose=robot_pose, # This pose is set by the previously received DriveToStep
+                                    stage_id=new_stage_id,
+                                )
+                            )
+                            poi_ids.append(poi_id)
+                        else:
+                            poi_ids.append(existing_poi_id)
 
-        if steps_n == 0 or (steps_n == 1 and is_possible_return_to_home_mission):
-            time.sleep(settings.API_SLEEP_TIME)
-            return
+            if steps_n == 0 or (steps_n == 1 and is_possible_return_to_home_mission):
+                time.sleep(settings.API_SLEEP_TIME) # We need to sleep to allow events to reach flotilla in the right order
+                return
 
-        if updating_site:
-            # We should only do the following if we changed the site
-            snapshot_id: str = self.api.commit_site_to_snapshot(stage_id=stage_id)
+            if new_stage_id is not None:
+                # We should only do the following if we changed the site
+                snapshot_id: str = self.api.commit_site_to_snapshot(stage_id=new_stage_id)
 
-            self.api.set_snapshot_as_head(
-                snapshot_id=snapshot_id, site_id=settings.ROBOT_EXR_SITE_ID
-            )
-
+                self.api.set_snapshot_as_head(
+                    snapshot_id=snapshot_id, site_id=settings.ROBOT_EXR_SITE_ID
+                )
+        except Exception as e:
+            if new_stage_id is not None:
+                self.api.discard_stage(stage_id=new_stage_id) # Discard stage if we did not manage to use it
+            raise e
+        
+        if new_stage_id is not None: # Here we wait for the site update to complete
             while not self.api.is_pipeline_completed(
                 site_id=settings.ROBOT_EXR_SITE_ID
             ):
