@@ -87,11 +87,15 @@ class Robot(RobotInterface):
             map_alignment.map_from, map_alignment.map_to, rot_axes="z"
         )
 
-    def initiate_mission(self, mission: Mission) -> None:
-        curent_stage_id = self.api.get_current_site_stage(settings.ROBOT_EXR_SITE_ID)
-        if curent_stage_id is not None:
-            self.api.discard_stage(stage_id=curent_stage_id)
+    def create_new_stage(self) -> str:
+        current_stage_id = self.api.get_current_site_stage(settings.ROBOT_EXR_SITE_ID)
+        if current_stage_id is not None:
+            self.api.discard_stage(stage_id=current_stage_id)
         stage_id: str = self.api.create_stage(site_id=settings.ROBOT_EXR_SITE_ID)
+        return stage_id
+
+    def initiate_mission(self, mission: Mission) -> None:
+        stage_id: str = self.create_new_stage()
 
         updating_site = False
         poi_ids: List[str] = []
@@ -119,10 +123,10 @@ class Robot(RobotInterface):
                     )
                     if existing_poi_id == None:
                         poi_id: str = (
-                            self._create_and_add_poi(  # Here we should only create if it does not already exist
+                            self._create_and_add_poi(
                                 task=task,
                                 step=step,
-                                robot_pose=robot_pose,
+                                robot_pose=robot_pose, # This pose is set by the previously received DriveToStep
                                 stage_id=stage_id,
                             )
                         )
