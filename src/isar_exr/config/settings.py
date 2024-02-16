@@ -16,16 +16,16 @@ class Settings(BaseSettings):
         super().__init__(_env_file=env_file_path)
 
     # The ID of the robot in the EXR database
-    ROBOT_EXR_ID: str = Field(default="628787246cc0c0205c56e88e")
+    ROBOT_EXR_ID: str = Field(default="61a09ebc5f71911c10b463ce")
 
     # The ID of the docking station in the EXR database
-    DOCKING_STATION_ID: str = Field(default="65cb874690e6878851ddc236")
+    DOCKING_STATION_ID: str = Field(default="65153c6893a0ba5b7b487b6e")
 
     # The ID of the relevant site in the EXR database (default=KAA)
-    ROBOT_EXR_SITE_ID: str = Field(default="65cb3a3946b245d013c0e2ff")
+    ROBOT_EXR_SITE_ID: str = Field(default="61a0a1f45f71913ebbb4657d")
 
     # Map to be used for creation of alitra transformation
-    MAP: str = Field(default="exr_jca_ap")
+    MAP: str = Field(default="exr_klab_sst")
 
     # URL for Ex-Robotics API
     ROBOT_API_URL: str = Field(default="https://developer.energy-robotics.com/graphql/")
