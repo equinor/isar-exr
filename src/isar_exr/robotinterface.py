@@ -23,6 +23,7 @@ from robot_interface.models.exceptions.robot_exceptions import (
     RobotInitializeException,
     RobotMissionStatusException,
     RobotInfeasibleStepException,
+    RobotMissionNotSupportedException,
 )
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
@@ -94,14 +95,13 @@ class Robot(RobotInterface):
         stage_id: str = self.api.create_stage(site_id=settings.ROBOT_EXR_SITE_ID)
         return stage_id
 
-    def initiate_mission(self, mission: Mission) -> None:
+    def update_site_with_tasks(self, tasks) -> List[str]: # Returns a list of POI IDs
         new_stage_id = None
         poi_ids: List[str] = []
         is_possible_return_to_home_mission = False
         steps_n = 0
-
         try:
-            for task in mission.tasks:
+            for task in tasks:
                 for step in task.steps:
                     steps_n += 1
                     if isinstance(step, Localize):
@@ -137,7 +137,7 @@ class Robot(RobotInterface):
 
             if steps_n == 0 or (steps_n == 1 and is_possible_return_to_home_mission):
                 time.sleep(settings.API_SLEEP_TIME) # We need to sleep to allow events to reach flotilla in the right order
-                return
+                raise RobotMissionNotSupportedException()
 
             if new_stage_id is not None:
                 # We should only do the following if we changed the site
@@ -156,6 +156,13 @@ class Robot(RobotInterface):
                 site_id=settings.ROBOT_EXR_SITE_ID
             ):
                 time.sleep(settings.API_SLEEP_TIME)
+        return poi_ids
+
+    def initiate_mission(self, mission: Mission) -> None:
+        try:
+            poi_ids: List[str] = self.update_site_with_tasks(mission.tasks)
+        except RobotMissionNotSupportedException:
+            return
 
         mission_definition_id: str = self.api.create_mission_definition(
             site_id=settings.ROBOT_EXR_SITE_ID,
