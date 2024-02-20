@@ -49,3 +49,17 @@ Finally, verify that you can run the tests:
 ```bash
 pytest .
 ```
+
+### Building docker image on a Mac
+
+When building docker image on Mac, one might have to include the following lines in the
+Dockerfile (between 'COPY . .' and 'RUN pip install .'):
+
+```
+COPY . .
+RUN apt-get update
+RUN apt-get install -y gcc python3-dev
+
+RUN python -m pip install --upgrade pip
+RUN pip install .
+```

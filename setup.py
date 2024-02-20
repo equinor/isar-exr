@@ -20,7 +20,7 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    package_data={"isar_exr": []},
+    package_data={"isar_exr": ["api/schema/schema.graphql"]},
     include_package_data=True,
     install_requires=[
         "alitra",
@@ -29,9 +29,6 @@ setup(
         "python-dotenv",
         "pydantic",
         "pydantic_settings>=2.0.3",
-    ],
-    setup_requires=[
-        "wheel",
     ],
     extras_require={
         "dev": [
