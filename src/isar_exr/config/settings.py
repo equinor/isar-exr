@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     )
 
     PATH_TO_GRAPHQL_SCHEMA: Path = Path(__file__).parent.joinpath(
-        "../../../docs/schema.graphql"
+        "../api/schema/schema.graphql"
     )
 
     # API sleep time
