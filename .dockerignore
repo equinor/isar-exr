@@ -1,7 +1,8 @@
 *
-!src/isar_robot
+!src/isar-exr
 !setup.py
 !setup.cfg
 !pyproject.toml
 !README.md
 !LICENSE
+!SECURITY.md
