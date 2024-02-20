@@ -51,6 +51,7 @@ class Settings(BaseSettings):
         env_prefix="EXR_",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
 
