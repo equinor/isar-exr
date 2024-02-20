@@ -118,8 +118,9 @@ class Robot(RobotInterface):
                             is_possible_return_to_home_mission = True
                         robot_pose: Pose = step.pose
                     if isinstance(step, InspectionStep):
+                        customer_tag: str = task.tag_id + robot_pose.to_string()
                         existing_poi_id = self.api.get_point_of_interest_by_customer_tag(
-                            customer_tag=task.tag_id, site_id=settings.ROBOT_EXR_SITE_ID
+                            customer_tag=customer_tag, site_id=settings.ROBOT_EXR_SITE_ID
                         )
                         if existing_poi_id == None:
                             new_stage_id: str = self.create_new_stage()
@@ -129,6 +130,7 @@ class Robot(RobotInterface):
                                     step=step,
                                     robot_pose=robot_pose, # This pose is set by the previously received DriveToStep
                                     stage_id=new_stage_id,
+                                    customer_tag=customer_tag,
                                 )
                             )
                             poi_ids.append(poi_id)
@@ -190,8 +192,6 @@ class Robot(RobotInterface):
             poi_ids: List[str] = self.update_site_with_tasks(mission.tasks)
         except RobotMissionNotSupportedException:
             return
-        except Exception as e:
-            raise e
 
         mission_definition_id: str = self.create_mission_definition(mission.id, mission.tasks, poi_ids)
 
@@ -313,7 +313,7 @@ class Robot(RobotInterface):
         raise NotImplementedError
 
     def _create_and_add_poi(
-        self, task: Task, step: Step, robot_pose: Pose, stage_id: str
+        self, task: Task, step: Step, robot_pose: Pose, stage_id: str, customer_tag: str
     ) -> str:
         target: Position = self.transform.transform_position(
             positions=step.target,
@@ -352,7 +352,7 @@ class Robot(RobotInterface):
 
         add_point_of_interest_input: dict[str, PointOfInterestActionPhotoInput] = {
             "name": task.tag_id if task.tag_id != None else step.id,
-            "customerTag": task.tag_id,
+            "customerTag": customer_tag,
             "frame": "map",
             "type": PointOfInterestTypeEnum.GENERIC,
             "site": settings.ROBOT_EXR_SITE_ID,
