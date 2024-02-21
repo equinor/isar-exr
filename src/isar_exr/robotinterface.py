@@ -20,10 +20,10 @@ from alitra import (
 )
 from robot_interface.models.exceptions.robot_exceptions import (
     RobotCommunicationException,
-    RobotInitializeException,
-    RobotMissionStatusException,
     RobotInfeasibleStepException,
+    RobotInitializeException,
     RobotMissionNotSupportedException,
+    RobotMissionStatusException,
 )
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
@@ -31,8 +31,8 @@ from robot_interface.models.mission.mission import Mission
 from robot_interface.models.mission.status import MissionStatus, RobotStatus, StepStatus
 from robot_interface.models.mission.step import (
     DriveToPose,
-    Localize,
     InspectionStep,
+    Localize,
     Step,
     TakeImage,
     TakeThermalImage,
@@ -50,6 +50,7 @@ from robot_interface.utilities.json_service import EnhancedJSONEncoder
 
 from isar_exr.api.energy_robotics_api import EnergyRoboticsApi
 from isar_exr.api.models.models import (
+    AddPointOfInterestInput,
     Point3DInput,
     PointOfInterestActionPhotoInput,
     PointOfInterestActionVideoInput,
@@ -58,7 +59,6 @@ from isar_exr.api.models.models import (
     Pose3DInput,
     Pose3DStampedInput,
     QuaternionInput,
-    AddPointOfInterestInput,
 )
 from isar_exr.config.settings import settings
 from isar_exr.models.exceptions import NoMissionRunningException
@@ -85,7 +85,7 @@ class Robot(RobotInterface):
             )
         )
         self.transform: Transform = align_maps(
-            map_alignment.map_from, map_alignment.map_to, rot_axes="z"
+            map_alignment.map_from, map_alignment.map_to, rot_axes="xyz"
         )
 
     def create_new_stage(self) -> str:
