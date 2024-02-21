@@ -120,7 +120,7 @@ class Robot(RobotInterface):
                             is_possible_return_to_home_mission = True
                         robot_pose: Pose = step.pose
                     if isinstance(step, InspectionStep):
-                        customer_tag: str = task.tag_id + robot_pose.to_string()
+                        customer_tag: str = task.tag_id + str(robot_pose)
                         existing_poi_id = (
                             self.api.get_point_of_interest_by_customer_tag(
                                 customer_tag=customer_tag,
