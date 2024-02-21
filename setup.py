@@ -30,7 +30,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "alitra",
-        "isar",
+        "isar>=1.16.14",
         "gql[aiohttp]",
         "python-dotenv",
         "pydantic",
@@ -44,6 +44,6 @@ setup(
             "pre-commit",
         ]
     },
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     tests_require=["pytest"],
 )
