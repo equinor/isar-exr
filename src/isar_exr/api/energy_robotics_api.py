@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from logging import Logger
 from time import sleep
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from gql.dsl import DSLMutation, DSLQuery, DSLSchema, DSLVariableDefinitions, dsl_gql
 from robot_interface.models.exceptions.robot_exceptions import (
@@ -506,7 +506,7 @@ class EnergyRoboticsApi:
         success: bool = status in [AwakeStatus.Awake]
         return success
 
-    def get_battery_level(self, exr_robot_id: str) -> float:
+    def get_battery_level(self, exr_robot_id: str) -> Optional[float]:
         params: dict = {"robotID": exr_robot_id}
 
         variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
@@ -528,17 +528,20 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(check_battery_query), params
             )
+        except TimeoutError as e:
+            self.logger.error(
+                "Could not check robot battery level due to request timeout"
+            )
+            return None
         except Exception as e:
             message: str = "Could not check robot battery level"
             self.logger.error(message)
-            raise RobotMissionStatusException(  # TODO: occurs after obstacle
+            raise RobotMissionStatusException(
                 error_description=message,
             )
 
         if not result["currentRobotStatus"]["isConnected"]:
-            raise RobotMissionStatusException(
-                error_description="Robot is not connected",
-            )
+            return None
 
         battery_level: float = result["currentRobotStatus"]["batteryStatus"][
             "percentage"
