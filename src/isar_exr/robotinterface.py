@@ -400,13 +400,17 @@ class Robot(RobotInterface):
         }
 
         if isinstance(step, TakeImage):
-            photo_input: PointOfInterestActionPhotoInput = (
+            add_point_of_interest_input["photoAction"] = (
                 PointOfInterestActionPhotoInput(
                     robotPose=photo_input_pose, sensor="inspection_cam_link"
                 )
             )
-            add_point_of_interest_input["photoAction"] = photo_input
-
+        elif isinstance(step, TakeThermalImage):
+            add_point_of_interest_input["photoAction"] = (
+                PointOfInterestActionPhotoInput(
+                    robotPose=photo_input_pose, sensor="back_cam_link"
+                )
+            )
         elif isinstance(step, TakeVideo):
             video_input: PointOfInterestActionVideoInput = (
                 PointOfInterestActionVideoInput(
