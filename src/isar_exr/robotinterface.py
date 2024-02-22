@@ -311,6 +311,8 @@ class Robot(RobotInterface):
                 or mission_status == MissionStatus.InProgress
             ):
                 return RobotStatus.Busy
+        except NoMissionRunningException:
+            return RobotStatus.Available
         except Exception as e:
             logging.warning(f"Failed to get status from robot: {e}")
             return RobotStatus.Offline
