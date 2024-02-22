@@ -301,7 +301,14 @@ class Robot(RobotInterface):
         try:
             if not self.api.is_connected(settings.ROBOT_EXR_ID):
                 return RobotStatus.Offline
+        except Exception as e:
+            message: str = f"Could not check if the robot is connected: {e}"
+            self.logger.error(message)
+            raise RobotCommunicationException(
+                error_description=message,
+            )
 
+        try:
             mission_status: MissionStatus = self.api.get_mission_status(
                 settings.ROBOT_EXR_ID
             )
@@ -311,10 +318,11 @@ class Robot(RobotInterface):
                 or mission_status == MissionStatus.InProgress
             ):
                 return RobotStatus.Busy
-        except NoMissionRunningException:
+        except NoMissionRunningException as e:
+            logging.info(f"There are no running missions: {e}")
             return RobotStatus.Available
         except Exception as e:
-            logging.warning(f"Failed to get status from robot: {e}")
+            logging.warning(f"Failed to get mission status from robot: {e}")
             return RobotStatus.Offline
 
         return RobotStatus.Available
