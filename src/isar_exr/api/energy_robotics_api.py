@@ -572,12 +572,6 @@ class EnergyRoboticsApi:
         except TimeoutError as e:
             self.logger.warning(f"Could not check robot due to timeout: {e}")
             return False
-        except Exception:
-            message: str = "Could not check if the robot is connected"
-            self.logger.error(message)
-            raise RobotCommunicationException(
-                error_description=message,
-            )
 
         return result["currentRobotStatus"]["isConnected"]
 
