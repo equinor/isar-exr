@@ -449,8 +449,10 @@ class EnergyRoboticsApi:
         wake_up_robot_mutation.variable_definitions = variable_definitions_graphql
 
         try:
-            result: Dict[str, Any] = self.client.query(
-                dsl_gql(wake_up_robot_mutation), params
+            result: Dict[str, Any] = (
+                self.client.query(  # TODO: consider checking if request was accepted
+                    dsl_gql(wake_up_robot_mutation), params
+                )
             )
         except Exception:
             message: str = "Could not wake up robot"
@@ -547,6 +549,36 @@ class EnergyRoboticsApi:
             "percentage"
         ]
         return battery_level
+
+    def is_connected(self, exr_robot_id: str) -> bool:
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        check_is_connected_query: DSLQuery = DSLQuery(
+            self.schema.Query.currentRobotStatus.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.RobotStatusType.isConnected,
+            )
+        )
+
+        check_is_connected_query.variable_definitions = variable_definitions_graphql
+
+        try:
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(check_is_connected_query), params
+            )
+        except TimeoutError:
+            return False
+        except Exception:
+            message: str = "Could not check if the robot is connected"
+            self.logger.error(message)
+            raise RobotCommunicationException(
+                error_description=message,
+            )
+
+        return result["currentRobotStatus"]["isConnected"]
 
     def create_mission_definition(
         self, site_id: str, mission_name: str, robot_id: str
