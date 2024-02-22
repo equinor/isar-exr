@@ -318,7 +318,6 @@ class Robot(RobotInterface):
             ):
                 return RobotStatus.Busy
         except NoMissionRunningException as e:
-            logging.info(f"There are no running missions: {e}")
             return RobotStatus.Available
         except Exception as e:
             logging.warning(f"Failed to get mission status from robot: {e}")
