@@ -532,7 +532,7 @@ class EnergyRoboticsApi:
             )
         except TimeoutError as e:
             self.logger.error(
-                "Could not check robot battery level due to request timeout"
+                f"Could not check robot battery level due to timeout: {e}"
             )
             return None
         except Exception as e:
@@ -569,7 +569,8 @@ class EnergyRoboticsApi:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(check_is_connected_query), params
             )
-        except TimeoutError:
+        except TimeoutError as e:
+            self.logger.warning(f"Could not check robot due to timeout: {e}")
             return False
         except Exception:
             message: str = "Could not check if the robot is connected"
