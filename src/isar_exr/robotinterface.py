@@ -299,7 +299,7 @@ class Robot(RobotInterface):
     def robot_status(self) -> RobotStatus:
         # TODO: find endpoint to check if it is stuck, maybe MissionExecutionStatusEnum.PAUSED
         try:
-            if not self.api.is_connected():
+            if not self.api.is_connected(settings.ROBOT_EXR_ID):
                 return RobotStatus.Offline
 
             mission_status: MissionStatus = self.api.get_mission_status(
