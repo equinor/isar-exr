@@ -458,6 +458,10 @@ class EnergyRoboticsApi:
                     dsl_gql(wake_up_robot_mutation), params
                 )
             )
+        except TransportQueryError as e:
+            self.logger.warning(
+                f"Could not wake up robot as it is already in the process of waking up: {e}"
+            )
         except Exception:
             message: str = "Could not wake up robot"
             self.logger.error(message)
