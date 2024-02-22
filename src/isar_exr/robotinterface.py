@@ -18,6 +18,7 @@ from alitra import (
     Transform,
     align_maps,
 )
+from isar_exr.models.exceptions import NoMissionRunningException
 from robot_interface.models.exceptions.robot_exceptions import (
     RobotCommunicationException,
     RobotInfeasibleStepException,
@@ -54,14 +55,12 @@ from isar_exr.api.models.models import (
     Point3DInput,
     PointOfInterestActionPhotoInput,
     PointOfInterestActionVideoInput,
-    PointOfInterestByCustomerTag,
     PointOfInterestTypeEnum,
     Pose3DInput,
     Pose3DStampedInput,
     QuaternionInput,
 )
 from isar_exr.config.settings import settings
-from isar_exr.models.exceptions import NoMissionRunningException
 
 
 class Robot(RobotInterface):
