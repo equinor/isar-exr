@@ -297,9 +297,23 @@ class Robot(RobotInterface):
         return publisher_threads
 
     def robot_status(self) -> RobotStatus:
-        # TODO: check if robot is running a task, or check if it is awake?
-        # TODO: use currentMissionExecution to see if Busy
         # TODO: find endpoint to check if it is stuck, maybe MissionExecutionStatusEnum.PAUSED
+        try:
+            if not self.api.is_connected():
+                return RobotStatus.Offline
+
+            mission_status: MissionStatus = self.api.get_mission_status(
+                settings.ROBOT_EXR_ID
+            )
+            if (
+                mission_status == MissionStatus.Paused
+                or mission_status == MissionStatus.NotStarted
+                or mission_status == MissionStatus.InProgress
+            ):
+                return RobotStatus.Busy
+        except Exception:
+            return RobotStatus.Offline
+
         return RobotStatus.Available
 
     def _get_pose_telemetry(self, isar_id: str, robot_name: str) -> str:
