@@ -6,6 +6,7 @@ from time import sleep
 from typing import Any, Dict, Optional
 
 from gql.dsl import DSLMutation, DSLQuery, DSLSchema, DSLVariableDefinitions, dsl_gql
+from gql.transport.exceptions import TransportQueryError
 from robot_interface.models.exceptions.robot_exceptions import (
     RobotAPIException,
     RobotCommunicationException,
@@ -19,7 +20,6 @@ from isar_exr.api.graphql_client import GraphqlClient
 from isar_exr.api.models.enums import AwakeStatus
 from isar_exr.api.models.models import (
     AddPointOfInterestInput,
-    BatteryStatusType,
     Pose3DStampedInput,
     UpsertPointOfInterestInput,
 )
@@ -343,6 +343,10 @@ class EnergyRoboticsApi:
         try:
             response_dict: dict[str, Any] = self.client.query(
                 dsl_gql(create_waypoint_task_definition_mutation), params
+            )
+        except TransportQueryError as e:
+            raise RobotInfeasibleMissionException(
+                f"Unable to add waypoint with task name {task_name} as it is not reachable: {e}"
             )
         except Exception:
             message: str = "Could not create waypoint task definition"
