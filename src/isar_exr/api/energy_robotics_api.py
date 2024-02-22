@@ -531,7 +531,7 @@ class EnergyRoboticsApi:
                 dsl_gql(check_battery_query), params
             )
         except TimeoutError as e:
-            self.logger.error(
+            self.logger.warning(
                 f"Could not check robot battery level due to timeout: {e}"
             )
             return None
