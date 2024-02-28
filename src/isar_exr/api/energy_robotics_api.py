@@ -25,7 +25,7 @@ from isar_exr.api.models.models import (
 )
 from isar_exr.config.settings import settings
 from isar_exr.models.exceptions import NoMissionRunningException
-from isar_exr.models.step_status import ExrMissionStatus
+from isar_exr.models.step_status import ExrMissionStatus, ExrStepStatus
 
 
 def to_dict(obj):
@@ -73,6 +73,49 @@ class EnergyRoboticsApi:
             response_dict["currentMissionExecution"]["status"]
         )
         return step_status.to_mission_status()
+
+    def get_mission_status_and_current_task(
+        self, exr_robot_id: str
+    ) -> tuple[MissionStatus, str]:
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        current_mission_execution_query: DSLQuery = DSLQuery(
+            self.schema.Query.currentMissionExecution.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.MissionExecutionType.status,
+                self.schema.MissionExecutionType.currentExecutedTaskId,
+            )
+        )
+
+        current_mission_execution_query.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        params: dict = {"robotID": exr_robot_id}
+
+        if not self.is_mission_running(exr_robot_id):
+            raise NoMissionRunningException(
+                f"Cannot get current EXR task - No EXR mission is running for robot "
+                f"with id {exr_robot_id}"
+            )
+
+        response_dict: dict[str, Any] = self.client.query(
+            dsl_gql(current_mission_execution_query), params
+        )
+
+        if response_dict["currentMissionExecution"] is None:
+            raise NoMissionRunningException(
+                f"Cannot get current EXR task - No EXR mission is running for robot "
+                f"with id {exr_robot_id}"
+            )
+
+        step_status = ExrStepStatus(response_dict["currentMissionExecution"]["status"])
+
+        return (
+            step_status,
+            response_dict["currentMissionExecution"]["currentExecutedTaskId"],
+        )
 
     def is_mission_running(self, exr_robot_id: str) -> bool:
         variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
