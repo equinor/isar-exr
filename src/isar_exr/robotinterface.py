@@ -19,12 +19,14 @@ from alitra import (
     align_maps,
 )
 from isar_exr.models.exceptions import NoMissionRunningException
+from isar_exr.models.step_status import ExrStepStatus
 from robot_interface.models.exceptions.robot_exceptions import (
     RobotCommunicationException,
     RobotInfeasibleStepException,
     RobotInitializeException,
     RobotMissionNotSupportedException,
     RobotMissionStatusException,
+    RobotStepStatusException,
 )
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
@@ -86,6 +88,8 @@ class Robot(RobotInterface):
         self.transform: Transform = align_maps(
             map_alignment.map_from, map_alignment.map_to, rot_axes="xyz"
         )
+        self.mission_task_ids: List[List[str]] = []
+        self.current_mission_task_index: int = 0
 
     def create_new_stage(self) -> str:
         current_stage_id = self.api.get_current_site_stage(settings.ROBOT_EXR_SITE_ID)
@@ -181,22 +185,27 @@ class Robot(RobotInterface):
         )
 
         for task in tasks:
+            step_ids: List[str] = []
             for step in task.steps:
                 if isinstance(step, DriveToPose):
-                    self._add_waypoint_task_to_mission(
+                    task_id = self._add_waypoint_task_to_mission(
                         mission_definition_id=mission_definition_id, step=step
                     )
+                    step_ids.append(task_id)
                 if isinstance(step, InspectionStep):
-                    self._add_point_of_interest_inspection_task_to_mission(
+                    task_id = self._add_point_of_interest_inspection_task_to_mission(
                         task_name=step.id,
                         point_of_interest_id=poi_ids.pop(0),
                         mission_definition_id=mission_definition_id,
                     )
+                    step_ids.append(task_id)
+            self.mission_task_ids.append(step_ids)
 
-        self._add_dock_robot_task_to_mission(
+        dock_task_id: str = self._add_dock_robot_task_to_mission(
             task_name="dock",
             mission_definition_id=mission_definition_id,
         )
+        self.mission_task_ids.append([dock_task_id])
         return mission_definition_id
 
     def initiate_mission(self, mission: Mission) -> None:
@@ -205,6 +214,8 @@ class Robot(RobotInterface):
         except RobotMissionNotSupportedException:
             return
 
+        self.mission_task_ids = []
+        self.current_mission_task_index = 0
         mission_definition_id: str = self.create_mission_definition(
             mission.id, mission.tasks, poi_ids
         )
@@ -231,9 +242,50 @@ class Robot(RobotInterface):
         raise NotImplementedError
 
     def step_status(self) -> StepStatus:
-        # TODO: use currentMissionExecution(robotID)
-        self.logger.error("An invalid interface function was called")
-        raise NotImplementedError
+        try:
+            (mission_status, current_task_id) = (
+                self.api.get_mission_status_and_current_task(settings.ROBOT_EXR_ID)
+            )
+            step_status: StepStatus = ExrStepStatus(mission_status).to_step_status()
+        except NoMissionRunningException:
+            # This is a temporary solution until we have mission status by mission id
+            return MissionStatus.Successful
+        except Exception as e:
+            message: str = "Could not get status of running mission\n"
+            self.logger.error(message)
+            raise RobotMissionStatusException(
+                error_description=message,
+            )
+
+        if current_task_id == "end_mission":
+            return StepStatus.Successful
+
+        if (
+            current_task_id == "start_mission"
+            or current_task_id == None
+            or current_task_id == ""
+        ):
+            return StepStatus.NotStarted
+
+        try:
+            step: List[str] = list(
+                filter(lambda step: current_task_id in step, self.mission_task_ids)
+            )[0]
+            task_index: int = self.mission_task_ids.index(step)
+        except ValueError or IndexError:
+            value_error_message: str = (
+                f"Could not find mission task with ID {current_task_id}\n"
+            )
+            self.logger.error(value_error_message)
+            raise RobotStepStatusException(
+                error_description=value_error_message,
+            )
+
+        if task_index > self.current_mission_task_index:
+            self.current_mission_task_index += 1
+            return StepStatus.Successful
+
+        return step_status
 
     def stop(self) -> None:
         try:
@@ -460,12 +512,12 @@ class Robot(RobotInterface):
             task_name=step.id,
             pose_3D_stamped_input=pose_3d_stamped,
         )
-        add_task_id: str = self.api.add_task_to_mission_definition(
+        self.api.add_task_to_mission_definition(
             task_id=waypoint_id,
             mission_definition_id=mission_definition_id,
         )
 
-        return add_task_id
+        return waypoint_id
 
     def _add_point_of_interest_inspection_task_to_mission(
         self, task_name: str, point_of_interest_id: str, mission_definition_id: str
@@ -479,6 +531,7 @@ class Robot(RobotInterface):
             task_id=poi_task_id,
             mission_definition_id=mission_definition_id,
         )
+        return poi_task_id
 
     def _add_dock_robot_task_to_mission(
         self, task_name: str, mission_definition_id: str
@@ -492,3 +545,4 @@ class Robot(RobotInterface):
             task_id=dock_task_id,
             mission_definition_id=mission_definition_id,
         )
+        return dock_task_id
