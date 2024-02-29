@@ -103,7 +103,7 @@ class Robot(RobotInterface):
     ) -> List[str]:  # Returns a list of POI IDs
         new_stage_id: str = None
         poi_ids: List[str] = []
-        is_possible_return_to_home_mission = False
+        is_possible_return_to_home_mission = True
         steps_n = 0
         try:
             for task in tasks:
@@ -112,17 +112,9 @@ class Robot(RobotInterface):
                     if isinstance(step, Localize):
                         steps_n -= 1
                     if isinstance(step, DriveToPose):
-                        if (
-                            step.pose.position.x == 0.0
-                            and step.pose.position.y == 0.0
-                            and step.pose.position.z == 0.0
-                            and step.pose.orientation.x == 0.0
-                            and step.pose.orientation.y == 0.0
-                            and step.pose.orientation.z == 0.0
-                        ):
-                            is_possible_return_to_home_mission = True
                         robot_pose: Pose = step.pose
                     if isinstance(step, InspectionStep):
+                        is_possible_return_to_home_mission = False
                         customer_tag: str = task.tag_id + "|" + str(robot_pose)
                         existing_poi_id = (
                             self.api.get_point_of_interest_by_customer_tag(
