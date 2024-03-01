@@ -13,6 +13,7 @@ from robot_interface.models.exceptions.robot_exceptions import (
     RobotInfeasibleMissionException,
     RobotMapException,
     RobotMissionStatusException,
+    RobotActionException,
 )
 from robot_interface.models.mission.status import MissionStatus
 
@@ -171,6 +172,50 @@ class EnergyRoboticsApi:
         if not success:
             raise RobotMissionStatusException(
                 error_description=f"Invalid status after pausing mission: '{status}'"
+            )
+
+    def stop_current_mission(self, exr_robot_id: str) -> None:
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        stop_current_mission_mutation: DSLMutation = DSLMutation(
+            self.schema.Mutation.resetMissionExecution.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.MissionExecutionType.id,
+                self.schema.MissionExecutionType.status,
+                self.schema.MissionExecutionType.failures,
+            )
+        )
+
+        stop_current_mission_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        try:
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(stop_current_mission_mutation), params
+            )
+        except TransportQueryError as e:
+            raise RobotActionException(
+                f"Could not stop the running mission since it is in a conflicting state: {e}"
+            )
+        except Exception as e:
+            raise RobotCommunicationException(
+                error_description=f"Could not stop the running mission: {e}",
+            )
+
+        status: ExrMissionStatus = ExrMissionStatus(
+            result["resetMissionExecution"]["status"]
+        )
+        success: bool = status in [
+            ExrMissionStatus.ResetRequested,
+            ExrMissionStatus.Completed,
+        ]
+        if not success:
+            raise RobotMissionStatusException(
+                error_description=f"Invalid status after stopping mission: '{status}'"
             )
 
     def get_point_of_interest_by_customer_tag(

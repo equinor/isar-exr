@@ -7,13 +7,13 @@ class ExrMissionStatus(str, Enum):
     StartRequested: str = "START_REQUESTED"
     PauseRequested: str = "PAUSE_REQUESTED"
     ResumeRequested: str = "RESUME_REQUESTED"
+    ResetRequested: str = "RESET_REQUESTED"
     Rejected: str = "REJECTED"
     WakingUp: str = "WAKING_UP"
     Starting: str = "STARTING"
     InProgress: str = "IN_PROGRESS"
     Paused: str = "PAUSED"
     Completed: str = "COMPLETED"
-    ResetRequested: str = "RESET_REQUESTED"
 
     def to_mission_status(self) -> MissionStatus:
         return {
