@@ -13,6 +13,7 @@ from robot_interface.models.exceptions.robot_exceptions import (
     RobotInfeasibleMissionException,
     RobotMapException,
     RobotMissionStatusException,
+    RobotActionException,
 )
 from robot_interface.models.mission.status import MissionStatus
 
@@ -146,7 +147,6 @@ class EnergyRoboticsApi:
             ).select(
                 self.schema.MissionExecutionType.id,
                 self.schema.MissionExecutionType.status,
-                self.schema.MissionExecutionType.failures,
             )
         )
 
@@ -157,6 +157,10 @@ class EnergyRoboticsApi:
         try:
             result: Dict[str, Any] = self.client.query(
                 dsl_gql(pause_current_mission_mutation), params
+            )
+        except TransportQueryError as e:
+            raise RobotActionException(
+                f"Could not pause the running mission since it is in a conflicting state: {e}"
             )
         except Exception:
             raise RobotCommunicationException(
@@ -171,6 +175,47 @@ class EnergyRoboticsApi:
         if not success:
             raise RobotMissionStatusException(
                 error_description=f"Invalid status after pausing mission: '{status}'"
+            )
+
+    def resume_current_mission(self, exr_robot_id: str) -> None:
+        params: dict = {"robotID": exr_robot_id}
+
+        variable_definitions_graphql: DSLVariableDefinitions = DSLVariableDefinitions()
+
+        resume_current_mission_mutation: DSLMutation = DSLMutation(
+            self.schema.Mutation.resumeMissionExecution.args(
+                robotID=variable_definitions_graphql.robotID
+            ).select(
+                self.schema.MissionExecutionType.id,
+                self.schema.MissionExecutionType.status,
+            )
+        )
+
+        resume_current_mission_mutation.variable_definitions = (
+            variable_definitions_graphql
+        )
+
+        try:
+            result: Dict[str, Any] = self.client.query(
+                dsl_gql(resume_current_mission_mutation), params
+            )
+        except TransportQueryError as e:
+            raise RobotActionException(
+                f"Could not resume the running mission since it is in a conflicting state: {e}"
+            )
+        except Exception:
+            raise RobotCommunicationException(
+                error_description="Could not resume the running mission",
+            )
+
+        status: ExrMissionStatus = ExrMissionStatus(result["status"])
+        success: bool = status in [
+            ExrMissionStatus.Paused,
+            ExrMissionStatus.PauseRequested,
+        ]
+        if not success:
+            raise RobotMissionStatusException(
+                error_description=f"Invalid status after resuming mission: '{status}'"
             )
 
     def get_point_of_interest_by_customer_tag(
