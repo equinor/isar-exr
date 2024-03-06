@@ -27,6 +27,7 @@ from robot_interface.models.exceptions.robot_exceptions import (
     RobotMissionNotSupportedException,
     RobotMissionStatusException,
     RobotStepStatusException,
+    RobotActionException,
 )
 from robot_interface.models.initialize import InitializeParams
 from robot_interface.models.inspection.inspection import Inspection
@@ -290,6 +291,54 @@ class Robot(RobotInterface):
             raise RobotCommunicationException(
                 error_description=message,
             )
+
+    def pause(self) -> None:
+        max_request_attempts: int = 10
+        pause_mission_attempts: int = 0
+        while pause_mission_attempts < max_request_attempts:
+            try:
+                self.api.pause_current_mission(self.exr_robot_id)
+            except RobotActionException as e:
+                self.logger.warning(
+                    f"Failed to pause current mission: {e.error_reason}"
+                )
+                pause_mission_attempts += 1
+                time.sleep(1)
+                continue
+            except Exception as e:
+                message: str = "Could not pause the running mission\n"
+                self.logger.error(message)
+                raise RobotCommunicationException(
+                    error_description=message,
+                )
+            return
+        raise RobotActionException(
+            f"Failed to pause current mission after {pause_mission_attempts} failed attempts"
+        )
+
+    def resume(self) -> None:
+        max_request_attempts: int = 10
+        resume_mission_attempts: int = 0
+        while resume_mission_attempts < max_request_attempts:
+            try:
+                self.api.resume_current_mission(self.exr_robot_id)
+            except RobotActionException as e:
+                self.logger.warning(
+                    f"Failed to resume current mission: {e.error_reason}"
+                )
+                resume_mission_attempts += 1
+                time.sleep(1)
+                continue
+            except Exception as e:
+                message: str = "Could not resume the running mission\n"
+                self.logger.error(message)
+                raise RobotCommunicationException(
+                    error_description=message,
+                )
+            return
+        raise RobotActionException(
+            f"Failed to resume current mission after {resume_mission_attempts} failed attempts"
+        )
 
     def get_inspections(self, step: InspectionStep) -> Sequence[Inspection]:
         raise NotImplementedError
