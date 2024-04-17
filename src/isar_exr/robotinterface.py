@@ -115,7 +115,9 @@ class Robot(RobotInterface):
                         robot_pose: Pose = step.pose
                     if isinstance(step, InspectionStep):
                         is_possible_return_to_home_mission = False
-                        customer_tag: str = task.tag_id + "|" + str(robot_pose)
+                        customer_tag: str = (
+                            task.tag_id + "|" + str(robot_pose) + "|" + str(step.target)
+                        )
                         existing_poi_id = (
                             self.api.get_point_of_interest_by_customer_tag(
                                 customer_tag=customer_tag,
@@ -241,7 +243,7 @@ class Robot(RobotInterface):
             step_status: StepStatus = ExrStepStatus(mission_status).to_step_status()
         except NoMissionRunningException:
             # This is a temporary solution until we have mission status by mission id
-            return MissionStatus.Successful
+            return StepStatus.Successful
         except Exception as e:
             message: str = "Could not get status of running mission\n"
             self.logger.error(message)

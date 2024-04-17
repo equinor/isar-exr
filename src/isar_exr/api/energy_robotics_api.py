@@ -593,7 +593,13 @@ class EnergyRoboticsApi:
                 error_description=message,
             )
 
-        if not result["currentRobotStatus"]["isConnected"]:
+        if result["currentRobotStatus"]["isConnected"] == None:
+            return None
+
+        if (
+            result["currentRobotStatus"]["batteryStatus"] == None
+            or result["currentRobotStatus"]["batteryStatus"]["percentage"] == None
+        ):
             return None
 
         battery_level: float = result["currentRobotStatus"]["batteryStatus"][

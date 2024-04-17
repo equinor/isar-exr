@@ -58,7 +58,7 @@ class GraphqlClient:
         schema: GraphQLSchema = build_ast_schema(self.document)
 
         transport: HTTPXTransport = HTTPXTransport(
-            url=settings.ROBOT_API_URL, headers=auth_header
+            url=settings.ROBOT_API_URL, headers=auth_header, timeout=30
         )
         self.client: Client = Client(transport=transport, schema=schema)  # type: ignore
         self.schema: DSLSchema = DSLSchema(self.client.schema)
@@ -104,7 +104,7 @@ class GraphqlClient:
             self.logger.error("The connection to the GraphQL endpoint is closed")
             raise
         except TransportServerError as e:
-            if e.code == 302:
+            if e.code == 302 or e.code == 401:
                 if self._reauthenticated:
                     self.logger.error(
                         "Transport server error - Error in Energy Robotics server even after reauthentication"
